@@ -2,10 +2,10 @@ import nodemailer from 'nodemailer';
 
 // Force hardcoded Hostinger settings since .env is not loading properly
 const SMTP_CONFIG = {
-  host: 'smtp.hostinger.com',
-  port: 587,
-  user: 'no-reply@readypips.com',
-  pass: '@Readypips.com1',
+  host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+  port: Number(process.env.SMTP_PORT) || 587,
+  user: process.env.SMTP_USER || 'no-reply@readypips.com',
+  pass: process.env.EMAIL_PASSWORD || '@Readypips.com1',
 };
 
 console.log('📧 [Email Service] SMTP Configuration (HARDCODED):');
@@ -138,9 +138,10 @@ export const emailTemplates = {
 // Send email function
 export const sendEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }) => {
   try {
-    const fromName = 'ReadyPips';
-    const fromEmail = 'no-reply@readypips.com';
-    
+
+    const fromName = process.env.SMTP_FROM_NAME || 'Ready Pips';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || 'no-reply@readypips.com';
+  
     console.log('📧 [Email Service] Preparing to send email...');
     console.log('  To:', to);
     console.log('  From Name:', fromName);

@@ -42,7 +42,9 @@ export default clientPromise;
 export async function getDatabase(): Promise<Db> {
   try {
     const client = await clientPromise;
-    const dbName = process.env.MONGODB_DB_NAME || "ready-pips";
+
+    const dbName = process.env.MONGODB_DB_NAME || "READYPIPS";
+    
     console.log('[MongoDB] Successfully connected to database:', dbName);
     return client.db(dbName);
   } catch (error: any) {
@@ -56,7 +58,9 @@ export async function getDatabase(): Promise<Db> {
         // Create new client and retry
         const newClient = new MongoClient(uri, options);
         const connectedClient = await newClient.connect();
-        const dbName = process.env.MONGODB_DB_NAME || "ready-pips";
+
+        const dbName = process.env.MONGODB_DB_NAME || "READYPIPS";
+        
         console.log('[MongoDB] Reconnected successfully to:', dbName);
         return connectedClient.db(dbName);
       } catch (retryError: any) {
