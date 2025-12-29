@@ -82,7 +82,7 @@ export function Footer() {
               rel="noopener noreferrer"
               className="text-green-400 hover:text-green-300 font-semibold transition-colors"
             >
-              Maxson Programming Limited
+              Pro
             </a>
           </p>
         </div>
