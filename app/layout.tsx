@@ -161,7 +161,7 @@ export default function RootLayout({
                 <SignalServiceProvider />
                 {children}
                 <Toaster />
-                <FloatingWhatsApp />
+                {/* <FloatingWhatsApp /> */}
               </PhoneCheckWrapper>
             </AuthProvider>
           </ClientSessionProvider>
