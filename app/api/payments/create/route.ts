@@ -4,6 +4,10 @@ import { getDatabase } from "@/lib/mongodb";
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken, findUserById } from "@/lib/auth"; // Add findUserById
 
+// Binance configuration
+const BINANCE_PAY_CERT = process.env.BINANCE_PAY_CERT; // API Key
+const BINANCE_PAY_SECRET = process.env.BINANCE_PAY_SECRET; // Secret Key
+
 export async function POST(req: NextRequest) {
   try {
     const { planId, provider } = await req.json();
@@ -49,7 +53,73 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ checkoutUrl: whopUrl.toString() });
     }
 
+     
     if (provider === "binance") {
+      const endpoint = "https://bpay.binanceapi.com/binancepay/openapi/v2/order";
+      
+      const orderBody = {
+        env: { terminalType: "WEB" },
+        merchantTradeNo: reference,
+        orderAmount: planConfig?.usd,
+        currency: "USDT",
+        goods: {
+          goodsType: "01", // Digital goods
+          goodsCategory: "6000", // Financial services
+          referenceGoodsId: planId,
+          goodsName: `Ready Pips ${planConfig?.name} Subscription`,
+          goodsDetail: `Access for ${planConfig?.duration} days`,
+        },
+        // Where to send the user after payment
+        returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
+        cancelUrl: `${process.env.NEXT_PUBLIC_APP_URL}/pricing?payment=cancelled`,
+      };
+
+      // Binance requires a specific signature format
+      const timestamp = Date.now().toString();
+      const nonce = crypto.randomBytes(16).toString("hex");
+      const payload = timestamp + "\n" + nonce + "\n" + JSON.stringify(orderBody) + "\n";
+      const signature = crypto
+        .createHmac("sha512", BINANCE_PAY_SECRET!)
+        .update(payload)
+        .digest("hex")
+        .toUpperCase();
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "BinancePay-Timestamp": timestamp,
+          "BinancePay-Nonce": nonce,
+          "BinancePay-Certificate": BINANCE_PAY_CERT!,
+          "BinancePay-Signature": signature,
+        },
+        body: JSON.stringify(orderBody),
+      });
+
+      const binanceData = await response.json();
+
+      if (binanceData.status === "SUCCESS") {
+        // Log to MongoDB
+        const db = await getDatabase();
+        await db.collection("payment_intents").insertOne({
+          reference,
+          userId: decoded.userId,
+          planId,
+          provider: "binance",
+          amount: planConfig?.usd,
+          status: "pending",
+          createdAt: new Date(),
+        });
+
+        return NextResponse.json({ checkoutUrl: binanceData.data.checkoutUrl });
+      } else {
+        console.error("Binance Error:", binanceData);
+        throw new Error("Binance Order Creation Failed");
+      }
+    }
+    
+
+    if (provider === "1binancev1") {
       return NextResponse.json({
         checkoutUrl: `https://pay.binance.com/en/checkout?merchantTradeNo=${reference}&totalFee=${planConfig.usd}&currency=USDT&terminalType=WEB`
       });
