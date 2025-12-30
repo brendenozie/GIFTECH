@@ -195,7 +195,8 @@ export function Navigation() {
   const handlePartnerAffiliateNavigation = () => {
     if (!user) {
       toast.info("Please login to continue");
-      router.push("/login?redirect=/partner");
+      // router.push("/login?redirect=/partner/pending");
+      router.push(`/login?redirect=${resolvePartnerAffiliatePath()}`);
       return;
     }
 
