@@ -156,7 +156,7 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-black dark:text-white">Tradingview Username *</Label>
+                  <Label htmlFor="lastName" className="text-black dark:text-white">Last Name *</Label>
                   <Input
                     id="lastName"
                     name="lastName"
