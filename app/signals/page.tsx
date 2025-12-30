@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 export default function SignalsPage() {
   // --- States ---
   const [loading, setLoading] = useState(false);
-  const [subscriptionLoading, setSubscriptionLoading] = useState(true);
+  const [subscriptionLoading, setSubscriptionLoading] = useState(false);
   const [subscriptionStatus, setSubscriptionStatus] = useState<string>("inactive");
   const [subscriptionType, setSubscriptionType] = useState<string | null>(null);
   const [selectedProvider, setSelectedProvider] = useState<"whop" | "binance">("whop");
@@ -26,35 +26,62 @@ export default function SignalsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      router.push("/login");
-    }
-  }, [authLoading, user, router]);
+  // useEffect(() => {
+  //   if (!authLoading && !user) {
+  //     router.push("/login");
+  //   }
+  // }, [authLoading, user, router]);
 
   // --- 1. Fetch Subscription Data ---
+  // useEffect(() => {
+  //   const fetchStatus = async () => {
+  //     const token = localStorage.getItem("token");
+  //     if (!token) return setSubscriptionLoading(false);
+
+  //     try {
+  //       const res = await fetch("/api/dashboard", {
+  //         headers: { Authorization: `Bearer ${token}` },
+  //       });
+  //       const data = await res.json();
+  //       setSubscriptionStatus(data.user?.subscriptionStatus || "inactive");
+  //       setSubscriptionType(data.user?.subscriptionType || "free");
+  //     } catch (err) {
+  //       console.error("Failed to fetch status:", err);
+  //     } finally {
+  //       setSubscriptionLoading(false);
+  //     }
+  //   };
+
+  //   if (user) fetchStatus();
+  // }, [user]);
+
   useEffect(() => {
+    if (!user) return;
+
     const fetchStatus = async () => {
-      const token = localStorage.getItem("token");
-      if (!token) return setSubscriptionLoading(false);
+      setSubscriptionLoading(true);
 
       try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
         const res = await fetch("/api/dashboard", {
           headers: { Authorization: `Bearer ${token}` },
         });
+
         const data = await res.json();
-        setSubscriptionStatus(data.user?.subscriptionStatus || "inactive");
-        setSubscriptionType(data.user?.subscriptionType || "free");
+        setSubscriptionStatus(data.user?.subscriptionStatus ?? "inactive");
+        setSubscriptionType(data.user?.subscriptionType ?? "free");
       } catch (err) {
-        console.error("Failed to fetch status:", err);
+        console.error(err);
       } finally {
         setSubscriptionLoading(false);
       }
     };
 
-    if (user) fetchStatus();
+    fetchStatus();
   }, [user]);
+
 
   // --- 2. Centralized Access Logic ---
   // Access is ONLY granted if Active AND NOT Free
@@ -111,9 +138,25 @@ export default function SignalsPage() {
     }
   };
 
-  if (authLoading || subscriptionLoading) {
-    return <div className="h-screen flex items-center justify-center">Authenticating...</div>;
+  // if (authLoading || subscriptionLoading) {
+  //   return <div className="h-screen flex items-center justify-center">Authenticating...</div>;
+  // }
+
+  if (authLoading) {
+    return (
+      <div className="h-screen flex items-center justify-center">
+        Authenticating...
+      </div>
+    );
   }
+
+  if (!authLoading && !user) {
+    router.replace("/login");
+    return null;
+  }
+
+  
+
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
@@ -222,6 +265,12 @@ export default function SignalsPage() {
             </div>
           </div>
         )}
+
+        {subscriptionLoading && (
+            <Badge variant="secondary" className="mb-4">
+              Checking subscription...
+            </Badge>
+          )}
       </main>
 
       <Footer />
