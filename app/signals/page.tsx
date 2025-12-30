@@ -26,6 +26,13 @@ export default function SignalsPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
 
+
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login");
+    }
+  }, [authLoading, user, router]);
+
   // --- 1. Fetch Subscription Data ---
   useEffect(() => {
     const fetchStatus = async () => {
@@ -52,32 +59,6 @@ export default function SignalsPage() {
   // --- 2. Centralized Access Logic ---
   // Access is ONLY granted if Active AND NOT Free
   const hasAccess = subscriptionStatus === "active" && subscriptionType !== "free";
-
-  // --- 3. Payment Initiation ---
-  // const handlePlanSelect = async (plan: any) => {
-  //   setLoading(true);
-  //   console.log("Selected Plan:", plan);
-  //   try {
-  //     const response = await fetch("/api/payments/create", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         planId: plan.planId, // e.g., 'plan_weekly'
-  //         provider: selectedProvider,
-  //         userId: user?._id,
-  //       }),
-  //     });
-
-  //     const data = await response.json();
-  //     if (data.checkoutUrl) {
-  //       window.location.href = data.checkoutUrl;
-  //     }
-  //   } catch (error) {
-  //     console.error("Payment initiation failed:", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const handlePlanSelect = async (plan: any) => {
     try {
