@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
       }
 
       // Generate token for admin
-      const token = generateToken(admin._id.toString());
+      const token = generateToken(admin._id.toString(),admin.email);
 
       // Remove password from response
       const { password: _, ...adminWithoutPassword } = admin;
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate token
-    const token = generateToken(user._id!);
+    const token = generateToken(user._id!,user.email!);
 
     // Remove password from response
     const { password: _, ...userWithoutPassword } = user;
