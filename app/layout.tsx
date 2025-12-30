@@ -52,7 +52,7 @@ export const metadata: Metadata = {
     siteName: "Ready Pips",
     images: [
       {
-        url: "/logo-light.png",
+        url: "/readypips_ico.png",
         width: 1200,
         height: 630,
         alt: "Ready Pips - AI-Powered Trading Signals Platform",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     title: "Ready Pips - AI-Powered Trading Signals Platform",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders.",
-    images: ["/logo-light.png"],
+    images: ["/readypips_ico.png"],
     creator: "@readypips",
   },
   robots: {
@@ -82,6 +82,11 @@ export const metadata: Metadata = {
     google: "your-google-verification-code",
     yandex: "your-yandex-verification-code",
     yahoo: "your-yahoo-verification-code",
+  },
+  icons: {
+    icon: "/readypips_ico.png",
+    shortcut: "/readypips_ico.png",
+    apple: "/readypips_ico.png",
   },
 };
 

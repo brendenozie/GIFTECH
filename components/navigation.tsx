@@ -174,7 +174,7 @@ export function Navigation() {
           <Link href="/" className="flex items-center">
             <div className="relative h-8">
               <img
-                src="/logo-light.png"
+                src="/readypips_ico.png"
                 alt="Ready Pips Logo"
                 className="h-8 w-auto dark:hidden"
               />
