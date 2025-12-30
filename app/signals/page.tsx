@@ -12,6 +12,7 @@ import { Footer } from "@/components/footer";
 import { useAuth } from "@/components/auth-context";
 import PricingPlans from "@/components/pricing-plans";
 
+///TRIGGER REFRESH AFTER PAYMENT
 export default function SignalsPage() {
   // --- States ---
   const [loading, setLoading] = useState(false);
