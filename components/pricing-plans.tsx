@@ -128,7 +128,7 @@ export default function PricingPlans({
               </div>
 
               {showGetStarted ? (
-                <Link href="/register">
+                <Link href="/login">
                   <Button className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold">
                     Get Started
                     <ArrowRight className="ml-2 w-4 h-4" />
