@@ -496,7 +496,7 @@ export default function HomePage() {
                 size="lg"
                 className="bg-white text-green-600 hover:bg-gray-100 font-semibold"
               >
-                Start Free Trial
+                Get Started 
                 <ArrowRight className="ml-2 w-4 h-4" />
               </Button>
             </Link>
