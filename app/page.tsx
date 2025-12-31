@@ -460,9 +460,9 @@ export default function HomePage() {
             <h2 className="text-3xl md:text-4xl font-bold mb-4 text-white drop-shadow-lg">
               Choose Your Plan
             </h2>
-            <p className="text-xl text-gray-100 drop-shadow-md">
+            {/* <p className="text-xl text-gray-100 drop-shadow-md">
               Start with a free trial, upgrade anytime
-            </p>
+            </p> */}
           </div>
 
           <PricingPlans showGetStarted={user ? false : true} onPlanSelect={(plan) => handlePricingPlanSelect(plan)} />

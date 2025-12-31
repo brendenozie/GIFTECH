@@ -75,7 +75,7 @@ export function SubscriptionCountdown({ token, onRenew }: SubscriptionCountdownP
             onClick={() => (window.location.href = "/subscription")}
             className="w-full bg-green-600 hover:bg-green-700"
           >
-            Subscribe Now
+            Get Access Now
           </Button>
         </CardContent>
       </Card>

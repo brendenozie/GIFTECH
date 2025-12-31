@@ -152,7 +152,7 @@ export default function PricingPlans({
                     ? "Processing..."
                     : currentPlan === "active"
                     ? "Active Subscription"
-                    : `Subscribe Now`}
+                    : `Get Access Now`}
                   {!loading && currentPlan !== "active" && (
                     <ArrowRight className="ml-2 w-4 h-4" />
                   )}

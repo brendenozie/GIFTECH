@@ -72,13 +72,13 @@ export const PLANS = [
   },
   {
     id: "3months",
-    name: "3 Months",
+    name: "Quarterly",
     price: "USD 129",
     priceKES: "KES 14999",
     whopPlanId: "plan_wURxlPXXhyIz2",
     usd: 129,
     kes: 14999,
-    period: "/3 months",
+    period: "/quarterly",
     duration: 90,
     features: [
       "Only Pay Once",
