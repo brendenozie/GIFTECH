@@ -147,7 +147,7 @@ export default function HomePage() {
             variant="outline"
           >
             <Zap className="w-3 h-3 mr-1" />
-            Precise powered Trading Signal
+            Precise powered Trading Signals
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
             Ready <span className="text-green-400">Pips</span>
