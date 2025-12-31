@@ -3,10 +3,14 @@
 import { Clock, ShieldCheck, Mail, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { Navigation } from "@/components/navigation";
 
 export default function PartnerPendingPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
+      {/* Navigation */}
+        <Navigation />
+            
       <div className="max-w-xl w-full bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center space-y-6">
         
         {/* Icon */}

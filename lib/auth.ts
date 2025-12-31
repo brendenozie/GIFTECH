@@ -39,6 +39,10 @@ export interface User {
   /** 🧩 PROFILES (OPTIONAL) */
   affiliateProfile?: AffiliateProfile | null;
   partnerProfile?: PartnerProfile | null;
+  /** 📦 SUBSCRIPTION DETAILS */
+  referralCode?: string;
+  refereer?: string; // referral code of the user who referred this user
+  tradingviewUsername?: string;
 
   subscriptionStatus: "active" | "inactive" | "expired";
   subscriptionType: "free" | "basic" | "premium" | "pro" | null;
@@ -108,6 +112,9 @@ export async function createUser(
     affiliateProfile: null,
     partnerProfile: null,
 
+    refereer: userData.refereer || undefined,
+    tradingviewUsername: userData.tradingviewUsername || undefined,
+
     // Default to free plan for all new users with 3-day trial
     subscriptionStatus: "active" as "active" | "inactive" | "expired",
     subscriptionType: "free" as "free" | "basic" | "premium" | "pro" | null,
@@ -133,6 +140,8 @@ export async function findUser(email: string): Promise<User | null> {
     firstName: user.firstName,
     lastName: user.lastName,
     phoneNumber: user.phoneNumber,
+    tradingviewUsername: user.tradingviewUsername,
+    referralCode: user.referralCode,
 
     role: user.role || "user",
     isAdmin: user.isAdmin || false,
@@ -168,6 +177,8 @@ export async function findUserById(id: string): Promise<User | null> {
       firstName: admin.firstName,
       lastName: admin.lastName,
       phoneNumber: admin.phoneNumber,
+      tradingviewUsername: admin.tradingviewUsername,
+      referralCode: admin.referralCode,
           
       role: admin.role || "admin",
 
@@ -197,6 +208,8 @@ export async function findUserById(id: string): Promise<User | null> {
     firstName: user.firstName,
     lastName: user.lastName,
     phoneNumber: user.phoneNumber,
+    tradingviewUsername: user.tradingviewUsername,
+    referralCode: user.referralCode,
 
     role: user.role || "user",
     isAdmin: user.isAdmin || false,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { signIn } from 'next-auth/react';
@@ -11,6 +11,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { TrendingUp, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import Cookies from 'js-cookie';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -21,11 +22,21 @@ export default function RegisterPage() {
     phoneNumber: '',
     password: '',
     confirmPassword: '',
+    refereer: '',
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
+
+  useEffect(() => {
+    // Read the cookie set by the middleware
+    const savedRef = Cookies.get('refereer_code');
+    if (savedRef) {
+      setFormData((prev) => ({ ...prev, refereer: savedRef }));
+      console.log("Refereer Code Loaded:", savedRef);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -61,12 +72,14 @@ export default function RegisterPage() {
           email: formData.email,
           phoneNumber: formData.phoneNumber,
           password: formData.password,
+          refereer: formData.refereer,
         }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
+        Cookies.remove('referral_code');
         toast.success('Account created successfully! Please log in.');
         // router.push('/login');
         router.push(`/verify-email-sent?email=${encodeURIComponent(formData.email)}`);
@@ -141,6 +154,16 @@ export default function RegisterPage() {
               Start your free trial and get access to premium trading signals
             </CardDescription>
           </CardHeader>
+          <CardContent>
+            {formData.refereer && (
+                <div className="max-w-md mx-auto mb-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-3">
+                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                  <p className="text-sm text-indigo-300">
+                    Partner referral applied: <span className="font-bold text-white uppercase">{formData.refereer}</span>
+                  </p>
+                </div>
+              )}            
+          </CardContent>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
               <div className="grid grid-cols-2 gap-4">

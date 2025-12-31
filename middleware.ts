@@ -1,7 +1,13 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
+
 export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+
+
+
   // Get the pathname of the request (e.g. /, /protected, /api/auth)
   const path = request.nextUrl.pathname;
 
@@ -46,9 +52,32 @@ export function middleware(request: NextRequest) {
   //   return NextResponse.next();
   // }
 
+    // 1. Check if the URL starts with /ref/
+  if (pathname.startsWith('/ref/')) {
+    const segments = pathname.split('/');
+    const refCode = segments[segments.length - 1]; // Get 'rp-98fd17'
+
+    if (refCode) {
+      // 2. Create a redirect response to the register page
+      const response = NextResponse.redirect(new URL('/register', request.url));
+
+      // 3. Set the cookie in the response object
+      response.cookies.set('refereer_code', refCode, {
+        maxAge: 60 * 60 * 24 * 7, // 7 days
+        path: '/',
+        httpOnly: false, // Set to false so your Client Component can read it
+        sameSite: 'lax',
+      });
+
+      return response;
+    }
+  }
+
   // For all other routes, continue
   return NextResponse.next();
-}
+} 
+
+
 
 export const config = {
   matcher: [
@@ -61,5 +90,6 @@ export const config = {
      * - public folder
      */
     '/((?!api|_next/static|_next/image|favicon.ico|public).*)',
+    '/ref/:path*',
   ],
 };

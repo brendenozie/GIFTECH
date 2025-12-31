@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, CheckCircle2, ChevronRight, LineChart, Wallet } from 'lucide-react';
 import { cn } from '@/lib/utils'; // Assumes standard shadcn utils exist
 import { toast } from 'sonner';
+import { Navigation } from '@/components/navigation';
 
 export default function PartnerOnboarding() {
   const [step, setStep] = useState(1);
@@ -58,7 +59,8 @@ export default function PartnerOnboarding() {
 
   return (
     <div className="min-h-screen bg-slate-950 flex items-center justify-center p-4 font-sans text-slate-100 relative overflow-hidden">
-      
+      {/* Navigation */}
+        <Navigation />
       {/* Background Ambience */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
         <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-purple-600/20 rounded-full blur-[100px]" />
