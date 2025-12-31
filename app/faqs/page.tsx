@@ -23,8 +23,8 @@ export default function FAQsPage() {
     },
     {
       question: "How do I receive signals?",
-      answer:
-        "Signals are delivered through multiple channels depending on your subscription plan: email notifications, in-app alerts, and WhatsApp messages for premium subscribers.",
+      answer: "Signals are automatically generated on chart in real-time.",
+        // "Signals are delivered through multiple channels depending on your subscription plan: email notifications, in-app alerts, and WhatsApp messages for premium subscribers.",
     },
     {
       question: "Can I use the platform on mobile?",

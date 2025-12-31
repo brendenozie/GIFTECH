@@ -543,11 +543,11 @@ export default function HomePage() {
                     Copy Trading
                   </Link>
                 </li>
-                <li>
+                {/* <li>
                   <Link href="/charts" className="hover:text-white">
                     Charts
                   </Link>
-                </li>
+                </li> */}
               </ul>
             </div>
             <div>

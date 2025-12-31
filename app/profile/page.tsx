@@ -521,13 +521,13 @@ export default function ProfilePage() {
                 >
                   View Signals
                 </Button>
-                <Button 
+                {/* <Button 
                   variant="outline" 
                   className="w-full justify-start"
                   onClick={() => router.push("/charts")}
                 >
                   Trading Charts
-                </Button>
+                </Button> */}
                 <Button 
                   variant="outline" 
                   className="w-full justify-start"

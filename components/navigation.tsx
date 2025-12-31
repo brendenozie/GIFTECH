@@ -56,7 +56,7 @@ export function Navigation() {
     //   description: "Real-time trading chart",
     // },
     {
-      name: "Signals",
+      name: "Indicator",
       href: "/signals",
       icon: TrendingUp,
       description: "Trading signals & alerts",
@@ -206,8 +206,10 @@ export function Navigation() {
 
   const partnerLabel = user
   ? user.role === "affiliate"
-    ? "Affiliate Dashboard"
-    : "Partner Dashboard"
+    // ? "Affiliate Dashboard"
+    ? "Profile Settings"
+    // : "Partner Dashboard"
+    : "Profile Settings"
   : "Partner / Affiliate";
 
 
