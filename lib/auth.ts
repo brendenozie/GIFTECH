@@ -2,6 +2,9 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { getDatabase } from "./mongodb";
 
+// Add this to your existing auth/db file
+import { ObjectId } from "mongodb";
+
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
 export type UserRole = "user" | "affiliate" | "partner";
@@ -231,6 +234,35 @@ export async function findUserById(id: string): Promise<User | null> {
   };
 }
 
+// export async function updateUserSubscription(
+//   userId: string,
+//   subscriptionData: {
+//     subscriptionStatus: "active" | "inactive" | "expired";
+//     subscriptionType: "basic" | "premium" | "pro";
+//     subscriptionEndDate: Date;
+//     subscriptionStartDate?: Date;
+//   }
+// ): Promise<void> {
+//   const db = await getDatabase();
+//   const { ObjectId } = require("mongodb");
+
+//   // When upgrading from free trial to paid, remove the freeTrialEndDate
+//   await db.collection("users").updateOne(
+//     { _id: new ObjectId(userId) },
+//     {
+//       $set: {
+//         ...subscriptionData,
+//         subscriptionStartDate: subscriptionData.subscriptionStartDate || new Date(),
+//         updatedAt: new Date(),
+//       },
+//       $unset: {
+//         freeTrialEndDate: "", // Remove free trial date when upgrading to paid
+//       },
+//     }
+//   );
+// }
+
+
 export async function updateUserSubscription(
   userId: string,
   subscriptionData: {
@@ -238,12 +270,15 @@ export async function updateUserSubscription(
     subscriptionType: "basic" | "premium" | "pro";
     subscriptionEndDate: Date;
     subscriptionStartDate?: Date;
+    paymentAmount?: number; // Pass the amount paid to calculate commission
   }
 ): Promise<void> {
   const db = await getDatabase();
-  const { ObjectId } = require("mongodb");
 
-  // When upgrading from free trial to paid, remove the freeTrialEndDate
+  // 1. Fetch the user to check for a 'refereer' (referral code)
+  const user = await db.collection("users").findOne({ _id: new ObjectId(userId) });
+
+  // 2. Update the user's subscription status
   await db.collection("users").updateOne(
     { _id: new ObjectId(userId) },
     {
@@ -253,8 +288,59 @@ export async function updateUserSubscription(
         updatedAt: new Date(),
       },
       $unset: {
-        freeTrialEndDate: "", // Remove free trial date when upgrading to paid
+        freeTrialEndDate: "", 
       },
+    }
+  );
+
+  // 3. If the user was referred and this is a payment, create a referral record
+  if (user?.refereer && subscriptionData.paymentAmount) {
+    await trackReferralCommission(user.refereer, userId, subscriptionData.paymentAmount);
+  }
+}
+
+
+async function trackReferralCommission(referralCode: string, referredUserId: string, amount: number) {
+  const db = await getDatabase();
+
+  // 1. Find the partner/affiliate who owns this referral code
+  // We check partnerProfile first, then affiliateProfile
+  const partner = await db.collection("users").findOne({
+    $or: [
+      { "partnerProfile.referralCode": referralCode },
+      { "affiliateProfile.referralCode": referralCode }
+    ]
+  });
+
+  if (!partner) return;
+
+  // 2. Determine commission rate (defaulting to 20% if not set)
+  const commissionRate = partner.partnerProfile?.commissionRate || 
+                         partner.affiliateProfile?.commissionRate || 0.2;
+  
+  const partnerRevenue = amount * commissionRate;
+
+  // 3. Create the record for the "Recent Activity" list on the dashboard
+  await db.collection("referrals").insertOne({
+    partnerId: partner._id,          // Link to the partner's account
+    referredUserId: new ObjectId(referredUserId),
+    referralCode: referralCode,
+    saleAmount: amount,              // Total user paid (e.g., $49)
+    revenue: partnerRevenue,         // Partner's cut (e.g., $9.80)
+    date: new Date(),
+    createdAt: new Date()
+  });
+
+  // 4. Update the Partner's total stats for the dashboard counters
+  const profileKey = partner.role === "partner" ? "partnerProfile" : "affiliateProfile";
+  
+  await db.collection("users").updateOne(
+    { _id: partner._id },
+    {
+      $inc: {
+        [`${profileKey}.totalRevenue`]: partnerRevenue,
+        [`${profileKey}.totalReferrals`]: 1
+      }
     }
   );
 }
