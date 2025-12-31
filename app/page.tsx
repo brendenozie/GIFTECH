@@ -335,7 +335,7 @@ export default function HomePage() {
                 <ul className="space-y-2 text-sm text-gray-700 dark:text-gray-300">
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
-                    Stop-loss levels
+                    TP & SL levels
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-600 mr-2" />
