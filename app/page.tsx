@@ -527,7 +527,7 @@ export default function HomePage() {
                 </div>
               </div>
               <p className="text-gray-400">
-                Unlock Powerful AI-Driven Trading Signals for a Competitive Edge
+                Unlock Powerful AI-Driven Trading Signals Indicator for a competitive edge.
               </p>
             </div>
             <div>
@@ -568,11 +568,11 @@ export default function HomePage() {
             <div>
               <h3 className="font-semibold mb-4">Company</h3>
               <ul className="space-y-2 text-gray-400">
-                <li>
+                {/* <li>
                   <Link href="/admin/login" className="hover:text-white">
                     Admin Dashboard
                   </Link>
-                </li>
+                </li> */}
                 <li>
                   <Link href="/privacy-policy" className="hover:text-white">
                     Privacy Policy
@@ -583,7 +583,7 @@ export default function HomePage() {
           </div>
           <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
             <p>&copy; 2025 Ready Pips. All rights reserved.</p>
-            <p className="mt-2">
+            {/* <p className="mt-2">
               Developed and maintained by{" "}
               <a
                 href="https://"
@@ -593,7 +593,7 @@ export default function HomePage() {
               >
                 Pro Limited
               </a>
-            </p>
+            </p> */}
           </div>
         </div>
       </footer>
