@@ -59,11 +59,11 @@ export function Footer() {
           <div>
             <h3 className="font-semibold mb-4">Company</h3>
             <ul className="space-y-2 text-gray-400">
-              {/* <li>
+              <li>
                 <Link href="/admin/login" className="hover:text-white">
                   Admin Dashboard
                 </Link>
-              </li> */}
+              </li>
               <li>
                 <Link href="/privacy-policy" className="hover:text-white">
                   Privacy Policy

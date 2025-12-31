@@ -29,19 +29,19 @@ export default function AdminSidebar({
       id: 'users',
       label: 'Users',
       icon: 'U',
-      permission: true,//admin?.permissions?.includes('view_users'),
+      permission: admin?.isAdmin === true,//.permissions?.includes('view_users'),
     },
     {
       id: 'subscriptions',
       label: 'Subscriptions',
       icon: 'S',
-      permission: true,//admin?.permissions?.includes('view_subscriptions'),
+      permission: admin?.isAdmin === true,//,//admin?.permissions?.includes('view_subscriptions'),
     },
     {
       id: 'partners',
       label: 'Partners',
       icon: 'P',
-      permission: true,//admin?.permissions?.includes('view_partners'),
+      permission: admin?.isAdmin === true,//,//admin?.permissions?.includes('view_partners'),
     },
     // {
     //   id: 'tools',

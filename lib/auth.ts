@@ -34,6 +34,7 @@ export interface User {
 
     /** 🔑 ROLE */
   role: UserRole;
+  isAdmin?: boolean;
 
   /** 🧩 PROFILES (OPTIONAL) */
   affiliateProfile?: AffiliateProfile | null;
@@ -196,6 +197,7 @@ export async function findUserById(id: string): Promise<User | null> {
     phoneNumber: user.phoneNumber,
 
     role: user.role || "user",
+    isAdmin: user.isAdmin || false,
 
     affiliateProfile: user.affiliateProfile || null,
     partnerProfile: user.partnerProfile || null,

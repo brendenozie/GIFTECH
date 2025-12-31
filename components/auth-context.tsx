@@ -34,6 +34,7 @@ export interface User {
 
     /** 🔑 ROLE */
   role: UserRole;
+  isAdmin?: boolean;
 
   /** 🧩 PROFILES (OPTIONAL) */
   affiliateProfile?: AffiliateProfile | null;

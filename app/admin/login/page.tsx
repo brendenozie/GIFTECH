@@ -2,15 +2,22 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from "@/components/auth-context";
 
 export default function AdminLogin() {
-  const router = useRouter();
+  const router = useRouter()
+  const { user, loading: authLoading } = useAuth();
 
   useEffect(() => {
     // Redirect to main login page
     // Admin users (admin@readypips.com) will be automatically redirected to admin dashboard
-    router.push('/login');
-  }, [router]);
+    if (!authLoading && (!user || (user && !user.isAdmin && !user.role))) {
+      router.push('/login');
+    }else if (!authLoading && user && (user.isAdmin || user.role)) {
+      router.push('/admin/dashboard');
+    }
+    
+  }, [router, authLoading, user]);
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-white dark:bg-black">
