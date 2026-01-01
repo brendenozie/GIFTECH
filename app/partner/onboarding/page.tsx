@@ -34,7 +34,7 @@ const PLATFORMS = [
   { id: 'Twitter/X', icon: Twitter, color: 'text-sky-400' },
   { id: 'Telegram', icon: Send, color: 'text-blue-400' },
   { id: 'Instagram', icon: Instagram, color: 'text-pink-500' },
-  { id: 'TikTok', icon: MousePointer2, color: 'text-black' },
+  { id: 'TikTok', icon: MousePointer2, color: 'text-red-600' },
   { id: 'Blog/Web', icon: Globe, color: 'text-emerald-400' },
 ];
 
