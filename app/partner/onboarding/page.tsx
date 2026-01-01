@@ -26,6 +26,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Navigation } from '@/components/navigation';
+import { useAuth } from '@/components/auth-context';
 
 type ApplicationType = 'affiliate' | 'partner' | null;
 
@@ -43,6 +45,7 @@ export default function PartnerOnboarding() {
   const [isLoading, setIsLoading] = useState(false);
   const [type, setType] = useState<ApplicationType>(null);
   const router = useRouter();
+  const { refreshUser } = useAuth();
 
   const [formData, setFormData] = useState({
     platform: '',
@@ -62,15 +65,35 @@ export default function PartnerOnboarding() {
 
   const handleSubmit = async () => {
     setIsLoading(true);
-    // ... same logic as before
-    setTimeout(() => { // Simulating for UI demo
-        toast.success("Application submitted successfully");
-        router.push("/partner/pending");
-    }, 1500);
+    const endpoint = type === 'partner' ? '/api/partner/apply' : '/api/affiliate/apply';
+    
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ ...formData, type }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+
+      await refreshUser();
+      toast.success("Application submitted successfully");
+      router.push("/partner/pending");
+    } catch (err: any) {
+      toast.error(err.message || "Submission failed");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#020617] flex items-center justify-center p-6 font-sans text-slate-100 relative overflow-hidden">
+
+      
       
       {/* Dynamic Background Elements */}
       <div className="absolute inset-0 pointer-events-none">
@@ -81,7 +104,10 @@ export default function PartnerOnboarding() {
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-slate-800 to-transparent" />
       </div>
 
-      <div className="w-full max-w-2xl relative z-10">
+      <div className="fixed left-0 top-0 h-full w-full flex flex-col items-center py-4 z-50 border-r border-slate-800/50 overflow-y-auto">
+        <Navigation />
+
+      <div className="w-full max-w-2xl relative z-10 mt-2">
         
         {/* Progress Navigation */}
         <div className="flex items-center justify-between mb-12 px-2">
@@ -266,6 +292,8 @@ export default function PartnerOnboarding() {
             </Button>
           </div>
         </div>
+      </div>
+      
       </div>
     </div>
   );

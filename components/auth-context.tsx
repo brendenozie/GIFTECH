@@ -87,6 +87,7 @@ interface AuthContextType {
   login: (token: string, redirectUrl?: string) => void;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -172,6 +173,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const refreshUser = async () => {
+    console.log('🔄 Refreshing user data...');
+    await checkAuth();
+  };
+
   const login = (token: string, redirectUrl?: string) => {
     localStorage.setItem('token', token);
     
@@ -217,7 +223,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, checkAuth, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );
