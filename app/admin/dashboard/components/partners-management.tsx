@@ -53,7 +53,7 @@ interface UserApplication {
 
 type FilterStatus = "pending" | "approved";
 
-export default function AdminReviewDashboard() {
+export default function PartnersManagement({admin}: {admin: any}) {
   const { toast } = useToast();
   const [users, setUsers] = useState<UserApplication[]>([]);
   const [loading, setLoading] = useState(true);
