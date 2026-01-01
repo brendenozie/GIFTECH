@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useEffect, useState } from "react";
 import { 
@@ -14,7 +14,11 @@ import {
   Clock,
   CheckCircle2,
   TrendingUp,
-  UserX
+  UserX,
+  Edit2,
+  Save,
+  Percent,
+  Award
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,272 +27,284 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils"; // Shadcn utility for tailwind classes
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
-interface Partner {
+// Expanded Interface to handle both types
+interface UserApplication {
   _id: string;
   email: string;
   firstName: string;
   lastName: string;
-  partnerProfile: {
+  role: "partner" | "affiliate";
+  partnerProfile?: {
     companyName: string;
-    website?: string;
-    country?: string;
-    appliedAt: string;
+    tier: "silver" | "gold" | "platinum";
+    revenueShare: number;
     isApproved: boolean;
+    appliedAt: string;
+  };
+  affiliateProfile?: {
+    commissionRate: number;
+    isActive: boolean;
+    appliedAt: string;
   };
 }
 
 type FilterStatus = "pending" | "approved";
 
-export default function AdminPartnerReviewDashboard({admin}: {admin: any}) {
+export default function AdminReviewDashboard() {
   const { toast } = useToast();
-  const [partners, setPartners] = useState<Partner[]>([]);
+  const [users, setUsers] = useState<UserApplication[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<FilterStatus>("pending");
   const [searchQuery, setSearchQuery] = useState("");
-  const [stats, setStats] = useState({ total: 0, pending: 0, approved: 0, countryCount: 0 });
+  
+  // Editing State
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editForm, setEditForm] = useState({ revenueShare: '', tier: '', commissionRate: '' });
 
   useEffect(() => {
-    fetchPartners();
-  }, [activeTab]); // Refetch when switching tabs
+    fetchApplications();
+  }, [activeTab]);
 
-  const fetchPartners = async () => {
+  const fetchApplications = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem("token");
-      if (!token) return;
-
-      // We use the activeTab to decide which endpoint to hit
-      const endpoint = activeTab === "pending" ? "/api/admin/partners/pending" : "/api/admin/partners/approve";
-
-      const [partnersRes, statsRes] = await Promise.all([
-        fetch(endpoint, {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch("/api/admin/partners/stats", {
-          headers: { Authorization: `Bearer ${token}` },
-        })
-      ]);
-
-      const partnersData = await partnersRes.json();
-      const statsData = await statsRes.json();
-
-      setPartners(partnersData.partners || []);
-      
-      if (statsData.stats) {
-        setStats({
-          total: statsData.stats.total,
-          pending: statsData.stats.pending,
-          approved: statsData.stats.approved,
-          countryCount: statsData.stats.countryCount
-        });
-      }
-    } catch (error) {
-      toast({
-        title: "Sync Error",
-        description: "Failed to refresh dashboard metrics",
-        variant: "destructive",
+      const res = await fetch(`/api/admin/applications?status=${activeTab}`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
       });
+      const data = await res.json();
+      setUsers(data || []);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to fetch applications", variant: "destructive" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAction = async (userId: string, action: "approve" | "reject" | "revoke") => {
+  const handleAction = async (userId: string, role: string, action: "approve" | "reject" | "revoke" | "update") => {
     try {
-      const token = localStorage.getItem("token");
-      const res = await fetch(`/api/admin/partners/${action}`, {
-        method: "POST",
+      const res = await fetch(`/api/admin/applications`, {
+        method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ 
+          userId, 
+          role, 
+          status: action === "approve" ? "approved" : action === "reject" ? "declined" : undefined,
+          updates: editForm 
+        }),
       });
 
       if (!res.ok) throw new Error();
 
-      toast({
-        title: `Action Successful`,
-        description: `Partner has been ${action}ed.`,
-      });
-
-      fetchPartners();
+      toast({ title: "Success", description: `Application updated successfully.` });
+      setEditingId(null);
+      fetchApplications();
     } catch {
-      toast({
-        title: "Action Failed",
-        variant: "destructive",
-      });
+      toast({ title: "Action Failed", variant: "destructive" });
     }
   };
 
-  const filteredPartners = partners.filter((p) =>
-    p.partnerProfile.companyName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    `${p.firstName} ${p.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter((u) =>
+    u.email?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    `${u.firstName} ${u.lastName}`.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-8 animate-in fade-in duration-700">
-      {/* 1. Header Section */}
+    <div className="max-w-7xl mx-auto p-6 space-y-8 animate-in fade-in duration-700 bg-slate-50/50 min-h-screen">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
         <div>
           <Badge variant="secondary" className="mb-2 px-3 py-1 text-primary bg-primary/10 border-none uppercase tracking-wider text-[10px] font-bold">
-            Admin Management
+            Network Management
           </Badge>
-          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Partner Relations</h1>
-          <p className="text-slate-500 mt-1">Manage, verify, and monitor your global partner network.</p>
+          <h1 className="text-4xl font-extrabold tracking-tight text-slate-900">Review Board</h1>
+          <p className="text-slate-500 mt-1">Configure commission rates and approve partner applications.</p>
         </div>
-        <Button onClick={fetchPartners} variant="outline" size="sm" className="hidden md:flex items-center gap-2 shadow-sm border-slate-200">
+        <Button onClick={fetchApplications} variant="outline" size="sm" className="hidden md:flex items-center gap-2 border-slate-200">
           Refresh Data
         </Button>
       </div>
 
-      {/* 2. Stats Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Partners" value={stats.total} icon={<Users className="w-5 h-5" />} color="text-blue-600" bgColor="bg-blue-50" />
-        <StatCard title="Pending Review" value={stats.pending} icon={<Clock className="w-5 h-5" />} color="text-amber-600" bgColor="bg-amber-50" />
-        <StatCard title="Verified Partners" value={stats.approved} icon={<CheckCircle2 className="w-5 h-5" />} color="text-emerald-600" bgColor="bg-emerald-50" />
-        <StatCard title="Active Regions" value={stats.countryCount} icon={<Globe className="w-5 h-5" />} color="text-indigo-600" bgColor="bg-indigo-50" />
-      </div>
-
-      {/* 3. Filter Tabs & Search */}
+      {/* Filter Tabs */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex p-1 bg-slate-100 rounded-xl w-full md:w-auto">
-          <button
-            onClick={() => setActiveTab("pending")}
-            className={cn(
-              "flex-1 md:flex-none px-6 py-2 text-sm font-bold rounded-lg transition-all",
-              activeTab === "pending" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            Pending {stats.pending > 0 && `(${stats.pending})`}
-          </button>
-          <button
-            onClick={() => setActiveTab("approved")}
-            className={cn(
-              "flex-1 md:flex-none px-6 py-2 text-sm font-bold rounded-lg transition-all",
-              activeTab === "approved" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
-            )}
-          >
-            Approved
-          </button>
+        <div className="flex p-1 bg-slate-200/50 rounded-xl w-full md:w-auto">
+          {/* {["pending", "approved"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab as FilterStatus)}
+              className={cn(
+                "flex-1 md:flex-none px-8 py-2 text-sm font-bold rounded-lg transition-all capitalize",
+                activeTab === tab ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"
+              )}
+            >
+              {tab}
+            </button>
+          ))} */}
         </div>
 
-        <div className="relative w-full max-w-sm group">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-primary transition-colors" />
+        <div className="relative w-full max-w-sm">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
           <Input
-            placeholder="Search partners..."
-            className="pl-10 bg-white border-slate-200 focus:ring-2 focus:ring-primary/20"
+            placeholder="Search by name or email..."
+            className="pl-10 bg-white border-slate-200"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
       </div>
 
-      {/* 4. Main Table Area */}
-      <Card className="border-none shadow-2xl shadow-slate-200/50 bg-white/80 backdrop-blur-md overflow-hidden">
-        <CardHeader className="border-b border-slate-50 bg-white/50 py-4">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            {activeTab === "pending" ? "Incoming Applications" : "Verified Network"}
-          </CardTitle>
-        </CardHeader>
+      {/* Main Table */}
+      <Card className="border-none shadow-xl shadow-slate-200/60 bg-white overflow-hidden">
         <CardContent className="p-0">
           {loading ? (
             <LoadingTable />
-          ) : filteredPartners.length > 0 ? (
+          ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
-                  <tr className="text-xs uppercase tracking-wider text-slate-400 bg-slate-50/50 font-bold">
-                    <th className="px-6 py-4">Partner</th>
-                    <th className="px-6 py-4">Company Details</th>
-                    <th className="px-6 py-4">Location</th>
-                    <th className="px-6 py-4">{activeTab === "pending" ? "Applied" : "Status"}</th>
+                  <tr className="text-xs uppercase tracking-wider text-slate-400 bg-slate-50/50 font-bold border-b border-slate-100">
+                    <th className="px-6 py-4">User Details</th>
+                    <th className="px-6 py-4">Type</th>
+                    <th className="px-6 py-4">Revenue Share / Rate</th>
+                    <th className="px-6 py-4">Status</th>
                     <th className="px-6 py-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {filteredPartners.map((partner) => (
-                    <tr key={partner._id} className="hover:bg-slate-50/50 transition-all duration-200 group">
+                  {filteredUsers.map((user) => (
+                    <tr key={user._id} className="hover:bg-slate-50/30 transition-all group">
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-4">
-                          <Avatar className="h-10 w-10 ring-2 ring-white shadow-sm font-bold">
-                            <AvatarFallback className="bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600">
-                              {partner.firstName[0]}{partner.lastName[0]}
+                        <div className="flex items-center gap-3">
+                          <Avatar className="h-10 w-10 border border-slate-200">
+                            <AvatarFallback className="bg-slate-100 text-slate-600 font-bold">
+                              {user.firstName[0]}{user.lastName[0]}
                             </AvatarFallback>
                           </Avatar>
                           <div className="flex flex-col">
-                            <span className="font-bold text-slate-900 leading-none">
-                              {partner.firstName} {partner.lastName}
-                            </span>
-                            <span className="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                              <Mail className="w-3 h-3" /> {partner.email}
-                            </span>
+                            <span className="font-bold text-slate-900">{user.firstName} {user.lastName}</span>
+                            <span className="text-xs text-slate-500">{user.email}</span>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                          <div className="flex items-center text-sm font-semibold text-slate-700">
-                            <Building2 className="w-3.5 h-3.5 mr-2 text-primary/60" />
-                            {partner.partnerProfile.companyName}
-                          </div>
-                          {partner.partnerProfile.website && (
-                            <a href={partner.partnerProfile.website} target="_blank" className="text-[11px] text-blue-500 hover:underline flex items-center">
-                              <ExternalLink className="w-3 h-3 mr-1" /> Visit
-                            </a>
-                          )}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <Badge variant="outline" className="bg-white text-slate-600 border-slate-200 font-medium italic">
-                          <Globe className="w-3 h-3 mr-1.5 opacity-70" />
-                          {partner.partnerProfile.country || "Global"}
+                        <Badge className={cn(
+                          "capitalize font-bold border-none",
+                          user.role === 'partner' ? "bg-purple-100 text-purple-700" : "bg-blue-100 text-blue-700"
+                        )}>
+                          {user.role}
                         </Badge>
-                      </td>
-                      <td className="px-6 py-4">
-                        {activeTab === "pending" ? (
-                          <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <Calendar className="w-3.5 h-3.5 opacity-50" />
-                            {new Date(partner.partnerProfile.appliedAt).toLocaleDateString()}
+                        {user.role === 'partner' && (
+                          <div className="text-[10px] text-slate-400 mt-1 font-medium italic">
+                             {user.partnerProfile?.companyName}
                           </div>
-                        ) : (
-                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 hover:bg-emerald-50">
-                            <CheckCircle2 className="w-3 h-3 mr-1" /> Active
-                          </Badge>
                         )}
                       </td>
+                      
+                      {/* COMMISSION / RATE EDITING CELL */}
                       <td className="px-6 py-4">
-                        <div className="flex justify-end gap-2 sm:opacity-0 group-hover:opacity-100 transition-all">
-                          {activeTab === "pending" ? (
+                        {editingId === user._id ? (
+                          <div className="flex items-center gap-2 animate-in slide-in-from-left-2">
+                            {user.role === 'partner' ? (
+                              <>
+                                <Input 
+                                  className="w-20 h-8 text-xs"
+                                  placeholder="Share (0.3)"
+                                  value={editForm.revenueShare}
+                                  onChange={(e) => setEditForm({...editForm, revenueShare: e.target.value})}
+                                />
+                                <Select 
+                                  value={editForm.tier} 
+                                  onValueChange={(v) => setEditForm({...editForm, tier: v})}
+                                >
+                                  <SelectTrigger className="w-24 h-8 text-xs">
+                                    <SelectValue placeholder="Tier" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="silver">Silver</SelectItem>
+                                    <SelectItem value="gold">Gold</SelectItem>
+                                    <SelectItem value="platinum">Platinum</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                              </>
+                            ) : (
+                              <Input 
+                                className="w-24 h-8 text-xs"
+                                placeholder="Rate (0.15)"
+                                value={editForm.commissionRate}
+                                onChange={(e) => setEditForm({...editForm, commissionRate: e.target.value})}
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-4 text-sm font-semibold text-slate-700">
+                            <div className="flex items-center gap-1.5">
+                              <Percent className="w-3.5 h-3.5 text-slate-400" />
+                              {user.role === 'partner' 
+                                ? `${((user.partnerProfile?.revenueShare || 0) * 100).toFixed(0)}%`
+                                : `${((user.affiliateProfile?.commissionRate || 0) * 100).toFixed(0)}%`
+                              }
+                            </div>
+                            {user.role === 'partner' && (
+                              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-slate-100 rounded text-[10px] uppercase tracking-tighter">
+                                <Award className="w-3 h-3 text-amber-500" />
+                                {user.partnerProfile?.tier}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-4">
+                        {(user.partnerProfile?.isApproved || user.affiliateProfile?.isActive) ? (
+                          <Badge className="bg-emerald-50 text-emerald-700 border-emerald-100 shadow-none">Active</Badge>
+                        ) : (
+                          <Badge className="bg-amber-50 text-amber-700 border-amber-100 shadow-none">Pending</Badge>
+                        )}
+                      </td>
+
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2">
+                          {editingId === user._id ? (
+                            <Button 
+                              size="sm" 
+                              className="bg-slate-900 hover:bg-emerald-600"
+                              onClick={() => handleAction(user._id, user.role, 'approve')}
+                            >
+                              <Save className="w-4 h-4 mr-1" /> Save & Approve
+                            </Button>
+                          ) : (
                             <>
                               <Button
                                 size="sm"
                                 variant="ghost"
-                                className="text-rose-600 hover:bg-rose-50"
-                                onClick={() => handleAction(partner._id, "reject")}
+                                className="text-slate-400 hover:text-primary"
+                                onClick={() => {
+                                  setEditingId(user._id);
+                                  setEditForm({
+                                    revenueShare: user.partnerProfile?.revenueShare.toString() || '',
+                                    tier: user.partnerProfile?.tier || '',
+                                    commissionRate: user.affiliateProfile?.commissionRate.toString() || ''
+                                  });
+                                }}
                               >
-                                <X className="w-4 h-4 mr-1" /> Decline
+                                <Edit2 className="w-4 h-4" />
                               </Button>
-                              <Button
-                                size="sm"
-                                className="bg-slate-900 hover:bg-emerald-600 transition-colors"
-                                onClick={() => handleAction(partner._id, "approve")}
-                              >
-                                <Check className="w-4 h-4 mr-1" /> Approve
-                              </Button>
+                              {activeTab === 'pending' && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="text-rose-500 hover:bg-rose-50"
+                                  onClick={() => handleAction(user._id, user.role, "reject")}
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              )}
                             </>
-                          ) : (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="text-slate-500 hover:text-rose-600 hover:bg-rose-50"
-                              onClick={() => handleAction(partner._id, "revoke")}
-                            >
-                              <UserX className="w-4 h-4 mr-1" /> Revoke Access
-                            </Button>
                           )}
                         </div>
                       </td>
@@ -297,8 +313,6 @@ export default function AdminPartnerReviewDashboard({admin}: {admin: any}) {
                 </tbody>
               </table>
             </div>
-          ) : (
-            <EmptyState tab={activeTab} />
           )}
         </CardContent>
       </Card>
@@ -306,27 +320,7 @@ export default function AdminPartnerReviewDashboard({admin}: {admin: any}) {
   );
 }
 
-function StatCard({ title, value, icon, color, bgColor }: any) {
-  return (
-    <Card className="border-none shadow-sm hover:shadow-md transition-all group overflow-hidden relative">
-      <CardContent className="p-5 flex items-center justify-between">
-        <div className="z-10">
-          <div className="flex items-center gap-1.5 mb-1">
-            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">{title}</p>
-            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-          <p className="text-3xl font-black text-slate-900 tabular-nums">
-            {value.toLocaleString()}
-          </p>
-        </div>
-        <div className={`p-3 rounded-2xl ${bgColor} ${color} transition-transform group-hover:scale-110 z-10`}>
-          {icon}
-        </div>
-      </CardContent>
-      <div className={`absolute -right-4 -bottom-4 w-24 h-24 rounded-full ${bgColor} opacity-10 group-hover:opacity-20 transition-opacity`} />
-    </Card>
-  );
-}
+// ... Keep LoadingTable and EmptyState from your previous code
 
 function EmptyState({ tab }: { tab: FilterStatus }) {
   return (
