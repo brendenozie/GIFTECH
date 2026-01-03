@@ -5,7 +5,7 @@ const SMTP_CONFIG = {
   host: process.env.SMTP_HOST || 'smtp.hostinger.com',
   port: Number(process.env.SMTP_PORT) || 587,
   user: process.env.SMTP_USER || 'no-reply@readypips.com',
-  pass: process.env.EMAIL_PASSWORD || '@Readypips.com1',
+  pass: process.env.EMAIL_PASSWORD || '',
 };
 
 console.log('📧 [Email Service] SMTP Configuration (HARDCODED):');
