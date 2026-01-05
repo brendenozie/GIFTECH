@@ -394,6 +394,7 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
                             <td className="px-6 py-4">
                               <div className="font-bold text-slate-900 uppercase text-[11px] tracking-tight">{sub.plan}</div>
                               <div className="text-xs text-slate-400 font-medium">{sub.userName}</div>
+                              <div className="text-xs text-slate-400 font-medium">{sub.tradingviewUsername}</div>
                             </td>
                             <td className="px-6 py-4"><StatusBadge status={sub.status} /></td>
                             <td className="px-6 py-4 text-[11px] text-slate-500 font-bold">
