@@ -210,13 +210,6 @@ export default function SignalsPage() {
               </button>
             </div>
 
-            {/* <PricingPlans 
-              onPlanSelect={handlePlanSelect} 
-              loading={loading}
-              showGetStarted={user ? false : true}
-              // provider={selectedProvider} 
-            /> */}
-
               <PricingPlans showGetStarted={user ? false : true} onPlanSelect={(plan) => handlePlanSelect(plan)} />
           </div>
         ) : (
