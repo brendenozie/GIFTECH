@@ -4,16 +4,18 @@ import { useEffect, useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardStats {
-  totalSubscribers: number;
-  activeSubscribers: number;
-  expiredSubscribers: number;
-  trialSubscribers: number;
-  totalRevenue: number;
-  weeklyRevenue: number;
-  dailyRevenue: number;
-  toolAccessMetrics: number;
+  totalUsers: number;
+  active: number;
+  expired: number;
+  trial: number;
+  pending: number;
   systemUptime: string;
-  supportTickets: number;
+  toolAccessMetrics: number;
+  revenue: {
+    total: number;
+    weekly: number;
+    daily: number;
+  };
 }
 
 interface PlanRevenue {
@@ -22,6 +24,15 @@ interface PlanRevenue {
   percentage: number;
   count: number;
 }
+
+interface RecentUser {
+  _id: string;
+  userName: string;
+  userEmail: string;
+  planType: string;
+  joinedDate: string;
+}
+
 
 export default function DashboardOverview({ admin }: { admin: any }) {
   const { toast } = useToast();
@@ -36,47 +47,48 @@ export default function DashboardOverview({ admin }: { admin: any }) {
   }, []);
 
   const fetchDashboardData = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-      const [statsRes, usersRes, planRevenueRes] = await Promise.all([
-        fetch('/api/admin/dashboard/stats', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('/api/admin/dashboard/recent-users', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-        fetch('/api/admin/dashboard/plan-revenue', {
-          headers: { Authorization: `Bearer ${token}` },
-        }),
-      ]);
+    const [statsRes, usersRes, plansRes] = await Promise.all([
+      fetch("/api/admin/dashboard/stats", {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      fetch("/api/admin/dashboard/recent-users", {
+        headers: { Authorization: `Bearer ${token}` }
+      }),
+      fetch("/api/admin/dashboard/plan-revenue", {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+    ]);
 
-      if (statsRes.ok) {
-        const data = await statsRes.json();
-        setStats(data.stats);
-      }
-
-      if (usersRes.ok) {
-        const data = await usersRes.json();
-        setRecentUsers(data.users || []);
-      }
-
-      if (planRevenueRes.ok) {
-        const data = await planRevenueRes.json();
-        setPlanRevenue(data.plans || []);
-      }
-    } catch (error) {
-      console.error('Error fetching dashboard data:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load dashboard data',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+    if (statsRes.ok) {
+      const { stats } = await statsRes.json();
+      setStats(stats);
     }
-  };
+
+    if (usersRes.ok) {
+      const { users } = await usersRes.json();
+      setRecentUsers(users);
+    }
+
+    if (plansRes.ok) {
+      const { plans } = await plansRes.json();
+      setPlanRevenue(plans);
+    }
+  } catch (error) {
+    toast({
+      title: "Dashboard Error",
+      description: "Failed to load dashboard data",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
+
 
   if (loading) {
     return (
@@ -91,29 +103,33 @@ export default function DashboardOverview({ admin }: { admin: any }) {
       {/* Key Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
-          title="Total Subscribers"
-          value={stats?.totalSubscribers || 0}
+          title="Total Users"
+          value={stats?.totalUsers || 0}
           icon="Users"
-          subtitle={`${stats?.activeSubscribers || 0} active`}
+          subtitle={`${stats?.active || 0} active`}
         />
+
         <MetricCard
-          title="Revenue (Monthly)"
-          value={`KES ${(stats?.totalRevenue || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          title="Revenue"
+          value={`KES ${stats?.revenue.total.toLocaleString()}`}
           icon="DollarSign"
-          subtitle={`Weekly: KES ${(stats?.weeklyRevenue || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+          subtitle={`Weekly: KES ${stats?.revenue.weekly.toLocaleString()}`}
         />
+
         <MetricCard
-          title="Tool Access"
-          value={stats?.toolAccessMetrics || 0}
+          title="Pending Payments"
+          value={stats?.pending || 0}
           icon="Settings"
-          subtitle="Active tools"
+          subtitle="Awaiting completion"
         />
+
         <MetricCard
-          title="System Status"
-          value={stats?.systemUptime || 'N/A'}
+          title="System Uptime"
+          value={stats?.systemUptime || "N/A"}
           icon="CheckCircle"
-          subtitle="Uptime"
+          subtitle="Last 30 days"
         />
+
       </div>
 
       {/* Subscription Status Overview */}
@@ -123,19 +139,20 @@ export default function DashboardOverview({ admin }: { admin: any }) {
           <div className="space-y-3">
             <StatusItem
               label="Active"
-              count={stats?.activeSubscribers || 0}
+              count={stats?.active || 0}
               color="bg-green-100 text-green-800"
             />
             <StatusItem
               label="Trial"
-              count={stats?.trialSubscribers || 0}
+              count={stats?.trial || 0}
               color="bg-blue-100 text-blue-800"
             />
             <StatusItem
               label="Expired"
-              count={stats?.expiredSubscribers || 0}
+              count={stats?.expired || 0}
               color="bg-red-100 text-red-800"
             />
+
           </div>
         </div>
 
@@ -147,7 +164,19 @@ export default function DashboardOverview({ admin }: { admin: any }) {
               <span className="text-gray-600">New Subscriptions</span>
               <span className="font-semibold text-lg">12</span>
             </div>
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between">
+              <span>Revenue Today</span>
+              <span>
+                KES {stats?.revenue.daily.toLocaleString()}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Pending Payments</span>
+              <span>{stats?.pending || 0}</span>
+            </div>
+
+            {/* <div className="flex justify-between items-center">
               <span className="text-gray-600">Revenue Today</span>
               <span className="font-semibold text-lg">
                 KES {(stats?.dailyRevenue || 0).toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
@@ -156,7 +185,7 @@ export default function DashboardOverview({ admin }: { admin: any }) {
             <div className="flex justify-between items-center">
               <span className="text-gray-600">Support Tickets</span>
               <span className="font-semibold text-lg">{stats?.supportTickets || 0}</span>
-            </div>
+            </div> */}
           </div>
         </div>
 
@@ -207,7 +236,7 @@ export default function DashboardOverview({ admin }: { admin: any }) {
               {recentUsers.length > 0 ? (
                 recentUsers.map((user) => (
                   <tr key={user._id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 text-sm text-gray-900">{user.userName}</td>
+                     <td className="px-6 py-4 text-sm text-gray-900">{user.userName}</td>
                     <td className="px-6 py-4 text-sm text-gray-600">{user.userEmail}</td>
                     <td className="px-6 py-4 text-sm">
                       <span className="inline-flex px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
@@ -216,7 +245,7 @@ export default function DashboardOverview({ admin }: { admin: any }) {
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-500">
                       {new Date(user.joinedDate).toLocaleDateString()}
-                    </td>
+                    </td> 
                   </tr>
                 ))
               ) : (

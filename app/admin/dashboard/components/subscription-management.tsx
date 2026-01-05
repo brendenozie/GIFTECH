@@ -384,6 +384,7 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
                         <tr>
                           <th className="px-6 py-4 text-left font-bold text-slate-500 uppercase text-[10px]">User Details</th>
                           <th className="px-6 py-4 text-left font-bold text-slate-500 uppercase text-[10px]">Status</th>
+                          <th className="px-6 py-4 text-left font-bold text-slate-500 uppercase text-[10px]">Activated</th>
                           <th className="px-6 py-4 text-left font-bold text-slate-500 uppercase text-[10px]">Expiry</th>
                           <th className="px-6 py-4 text-right font-bold text-slate-500 uppercase text-[10px]">Paid</th>
                         </tr>
@@ -397,6 +398,9 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
                               <div className="text-xs text-slate-400 font-medium">{sub.tradingviewUsername}</div>
                             </td>
                             <td className="px-6 py-4"><StatusBadge status={sub.status} /></td>
+                            <td className="px-6 py-4 text-[11px] text-slate-500 font-bold">
+                              {new Date(sub.startDate).toLocaleDateString()}
+                            </td>
                             <td className="px-6 py-4 text-[11px] text-slate-500 font-bold">
                               {new Date(sub.endDate).toLocaleDateString()}
                             </td>

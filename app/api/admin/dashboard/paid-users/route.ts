@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     }
 
     const db = await getDatabase();
-    const paymentsCollection = db.collection('payments');
+    const paymentsCollection = db.collection('payment_intents');
     
     // Get latest payments grouped by user, showing paid users sorted by latest payment
     const paidUsers = await paymentsCollection

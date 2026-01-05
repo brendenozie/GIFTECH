@@ -56,6 +56,7 @@ export interface AdminUser {
   role: AdminRole;
   permissions: AdminPermission[];
   isActive: boolean;
+  isAdmin?: boolean;
   lastLogin?: Date;
   createdAt: Date;
   updatedAt: Date;
