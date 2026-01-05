@@ -24,51 +24,92 @@ export default function UserManagement({ admin }: { admin: any }) {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [stats, setStats] = useState({ 
-    total: 0, 
-    free: 0, 
-    weekly: 0, 
-    monthly: 0, 
-    threeMonths: 0 
+    // total: 0, 
+    // free: 0, 
+    // weekly: 0, 
+    // monthly: 0, 
+    // threeMonths: 0 
+
+    totalUsers: 1,
+    active: 1,
+    expired: 0,
+    trial: 0,
+    pending: 0,
   });
+
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [search, setSearch] = useState("");
+  const [limit, setLimit] = useState(10);
 
   useEffect(() => {
     fetchUsers();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, search, limit]);
+
+  const fetchStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const res = await fetch('/api/admin/dashboard/stats', {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+    // if (statsRes.ok) {
+    //   const { stats } = await statsRes.json();
+    //   setStats(stats);
+    // }
+
+      if (!res.ok) throw new Error();
+
+      const data = await res.json();
+      setStats(data.stats);
+    } catch {
+      toast({
+        title: "Error",
+        description: "Failed to load user statistics",
+        variant: "destructive"
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
   }, []);
 
   const fetchUsers = async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) return;
+  try {
+    setLoading(true);
+    const token = localStorage.getItem("token");
+    if (!token) return;
 
-      const response = await fetch('/api/admin/users', {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        setUsers(data.users || []);
-        
-        // Calculate stats by subscription type
-        const total = data.users?.length || 0;
-        const free = data.users?.filter((u: User) => !u.subscriptionType || u.subscriptionType === 'free').length || 0;
-        const weekly = data.users?.filter((u: User) => u.subscriptionType === 'basic').length || 0;
-        const monthly = data.users?.filter((u: User) => u.subscriptionType === 'premium').length || 0;
-        const threeMonths = data.users?.filter((u: User) => u.subscriptionType === 'pro').length || 0;
-        
-        setStats({ total, free, weekly, monthly, threeMonths });
-      }
-    } catch (error) {
-      console.error('Error fetching users:', error);
-      toast({
-        title: 'Error',
-        description: 'Failed to load users',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
+    const res = await fetch(`/api/admin/users?${params}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+
+    if (!res.ok) throw new Error();
+
+    const data = await res.json();
+    setUsers(data.users);
+    setTotalPages(data.totalPages);
+
+  } catch {
+    toast({
+      title: "Error",
+      description: "Failed to load users",
+      variant: "destructive"
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
 
   const handleEditUser = (user: User) => {
     setEditingUser({ ...user });
@@ -128,11 +169,11 @@ export default function UserManagement({ admin }: { admin: any }) {
         <p className="text-gray-600 mb-4">Manage registered users and their access to trading tools.</p>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
-          <StatBox title="Total Users" value={stats.total.toString()} color="blue" />
-          <StatBox title="Free Trial" value={stats.free.toString()} color="gray" />
-          <StatBox title="Weekly Plan" value={stats.weekly.toString()} color="green" />
-          <StatBox title="Monthly Plan" value={stats.monthly.toString()} color="purple" />
-          <StatBox title="3 Months Plan" value={stats.threeMonths.toString()} color="orange" />
+          <StatBox title="Total Users" value={stats.totalUsers.toString()} color="blue" />
+          <StatBox title="Trial" value={stats.trial.toString()} color="gray" />
+          <StatBox title="Active" value={stats.active.toString()} color="green" />
+          <StatBox title="Expired" value={stats.expired.toString()} color="purple" />
+          <StatBox title="Pending" value={stats.pending.toString()} color="orange" />
         </div>
 
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -145,6 +186,31 @@ export default function UserManagement({ admin }: { admin: any }) {
             </div>
           </div>
           <div className="overflow-x-auto">
+            <div className="flex flex-col md:flex-row gap-4 justify-between mb-4">
+              <input
+                placeholder="Search users…"
+                value={search}
+                onChange={(e) => {
+                  setPage(1);
+                  setSearch(e.target.value);
+                }}
+                className="w-full md:w-64 px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+              />
+
+              <select
+                value={limit}
+                onChange={(e) => {
+                  setPage(1);
+                  setLimit(Number(e.target.value));
+                }}
+                className="px-3 py-2 border rounded-lg"
+              >
+                <option value={10}>10 / page</option>
+                <option value={20}>20 / page</option>
+                <option value={50}>50 / page</option>
+              </select>
+            </div>
+
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -215,6 +281,31 @@ export default function UserManagement({ admin }: { admin: any }) {
                 )}
               </tbody>
             </table>
+
+            <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+              <span className="text-sm text-gray-600">
+                Page {page} of {totalPages}
+              </span>
+
+              <div className="flex gap-2">
+                <button
+                  disabled={page === 1}
+                  onClick={() => setPage(p => p - 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-50 text-sm text-gray-700"
+                >
+                  ← Prev
+                </button>
+
+                <button
+                  disabled={page === totalPages}
+                  onClick={() => setPage(p => p + 1)}
+                  className="px-3 py-1 border rounded disabled:opacity-50 text-sm text-gray-700"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>

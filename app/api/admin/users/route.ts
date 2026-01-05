@@ -25,83 +25,142 @@ async function verifyAdmin(request: NextRequest) {
 }
 
 // GET all users
-export async function GET(request: NextRequest) {
+// /api/admin/users/route.ts
+// import { NextRequest, NextResponse } from "next/server";
+// import { getDatabase } from "@/lib/mongodb";
+// import { verifyAdminToken } from "@/lib/admin";
+
+export async function GET(req: NextRequest) {
   try {
-    // const auth = await verifyAdmin(request);
-    // if (!auth.valid) {
-    //   return NextResponse.json({ error: auth.error }, { status: 401 });
+    const token = req.headers.get("authorization")?.replace("Bearer ", "");
+    // const decoded = verifyAdminToken(token!);
+    // if (!decoded?.isAdmin) {
+    //   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     // }
 
-    // const admin = auth.admin!;
-
-    // Check permission
-    // if (!(await hasPermission(admin._id!, AdminPermission.VIEW_USERS))) {
-    //   return NextResponse.json(
-    //     { error: "Insufficient permissions" },
-    //     { status: 403 }
-    //   );
-    // }
-
-    const token = request.headers.get("authorization")?.replace("Bearer ", "");
-    const decoded = verifyToken(token!);
-
-    if (!decoded || decoded.isAdmin !== true) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
+    const { searchParams } = new URL(req.url);
+    const page = Math.max(Number(searchParams.get("page") || 1), 1);
+    const limit = Math.max(Number(searchParams.get("limit") || 10), 5);
+    const search = searchParams.get("search") || "";
+    const skip = (page - 1) * limit;
 
     const db = await getDatabase();
 
-    const searchParams = request.nextUrl.searchParams;
-    const search = searchParams.get("search"); // search by email or name
-    const subscriptionStatus = searchParams.get("subscription"); // active, expired, trial, none
-    const limit = parseInt(searchParams.get("limit") || "50");
-    const page = parseInt(searchParams.get("page") || "1");
+    const match = search
+      ? {
+          $or: [
+            { firstName: { $regex: search, $options: "i" } },
+            { lastName: { $regex: search, $options: "i" } },
+            { email: { $regex: search, $options: "i" } }
+          ]
+        }
+      : {};
 
-    let filter: any = {};
-
-    if (search) {
-      filter.$or = [
-        { email: { $regex: search, $options: "i" } },
-        { firstName: { $regex: search, $options: "i" } },
-        { lastName: { $regex: search, $options: "i" } },
-      ];
-    }
-
-    if (subscriptionStatus) {
-      filter["subscription.status"] = subscriptionStatus;
-    }
-
-    const users = await db
-      .collection("users")
-      .find(filter)
-      .project({ password: 0 }) // Exclude password
-      .sort({ createdAt: -1 })
-      .limit(limit)
-      .skip((page - 1) * limit)
-      .toArray();
-
-    const total = await db.collection("users").countDocuments(filter);
-
-    return NextResponse.json(
+    const result = await db.collection("users").aggregate([
+      { $match: match },
       {
-        users,
-        pagination: {
-          page,
-          limit,
-          total,
-          pages: Math.ceil(total / limit),
-        },
-      },
-      { status: 200 }
-    );
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 }
-    );
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { createdAt: -1 } },
+            { $skip: skip },
+            { $limit: limit }
+          ]
+        }
+      }
+    ]).toArray();
+
+    const users = result[0].data;
+    const total = result[0].metadata[0]?.total || 0;
+
+    return NextResponse.json({
+      users,
+      page,
+      totalPages: Math.ceil(total / limit),
+      total
+    });
+  } catch (e) {
+    return NextResponse.json({ error: "Server error" }, { status: 500 });
   }
 }
+
+// export async function GET(request: NextRequest) {
+//   try {
+//     // const auth = await verifyAdmin(request);
+//     // if (!auth.valid) {
+//     //   return NextResponse.json({ error: auth.error }, { status: 401 });
+//     // }
+
+//     // const admin = auth.admin!;
+
+//     // Check permission
+//     // if (!(await hasPermission(admin._id!, AdminPermission.VIEW_USERS))) {
+//     //   return NextResponse.json(
+//     //     { error: "Insufficient permissions" },
+//     //     { status: 403 }
+//     //   );
+//     // }
+
+//     const token = request.headers.get("authorization")?.replace("Bearer ", "");
+//     const decoded = verifyToken(token!);
+
+//     if (!decoded || decoded.isAdmin !== true) {
+//       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+//     }
+
+//     const db = await getDatabase();
+
+//     const searchParams = request.nextUrl.searchParams;
+//     const search = searchParams.get("search"); // search by email or name
+//     const subscriptionStatus = searchParams.get("subscription"); // active, expired, trial, none
+//     const limit = parseInt(searchParams.get("limit") || "50");
+//     const page = parseInt(searchParams.get("page") || "1");
+
+//     let filter: any = {};
+
+//     if (search) {
+//       filter.$or = [
+//         { email: { $regex: search, $options: "i" } },
+//         { firstName: { $regex: search, $options: "i" } },
+//         { lastName: { $regex: search, $options: "i" } },
+//       ];
+//     }
+
+//     if (subscriptionStatus) {
+//       filter["subscription.status"] = subscriptionStatus;
+//     }
+
+//     const users = await db
+//       .collection("users")
+//       .find(filter)
+//       .project({ password: 0 }) // Exclude password
+//       .sort({ createdAt: -1 })
+//       .limit(limit)
+//       .skip((page - 1) * limit)
+//       .toArray();
+
+//     const total = await db.collection("users").countDocuments(filter);
+
+//     return NextResponse.json(
+//       {
+//         users,
+//         pagination: {
+//           page,
+//           limit,
+//           total,
+//           pages: Math.ceil(total / limit),
+//         },
+//       },
+//       { status: 200 }
+//     );
+//   } catch (error) {
+//     console.error("Error fetching users:", error);
+//     return NextResponse.json(
+//       { error: "Internal server error" },
+//       { status: 500 }
+//     );
+//   }
+// }
 
 // PUT update user
 export async function PUT(request: NextRequest) {
