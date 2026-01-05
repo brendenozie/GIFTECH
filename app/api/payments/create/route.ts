@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       // 3. Return the specific URL Whop generated for this user
       return NextResponse.json({ checkoutUrl: session.purchase_url });
     }
+    
     // if (provider === "whop") {
     //   const whopUrl = new URL(`https://whop.com/checkout/${process.env.NEXT_PUBLIC_WHOP_APP_ID}`);
     //   whopUrl.searchParams.append("custom_id", reference);
