@@ -24,7 +24,7 @@ interface Stats {
   revenue: number;
 }
 
-export default function SubscriptionManagement() {
+export default function SubscriptionManagement({ admin }: { admin: any }) {
   const { toast } = useToast();
 
   // -------------------- DATA STATE --------------------
