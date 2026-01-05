@@ -8,9 +8,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { event, data } = body;
 
-    // We look for 'payment.succeeded' or 'membership.went_active'
+    // We look for 'payment.succeeded' or 'membership.went_active' or 'membership.activated'
     // Whop passes our UUID in the 'custom_id' field
-    if (event === "membership.went_active" || event === "payment.succeeded") {
+    if (event === "membership.went_active" || event === "payment.succeeded" || event === "membership.activated" || 
+      event === "payment.completed" || event === "subscription.activated" || event === "subscription.went_active" || 
+      event === "subscription.completed" || event === "order.completed" || event === "order.paid"
+    ) {
       const reference = data.custom_id; 
       const db = await getDatabase();
 
@@ -48,6 +51,28 @@ export async function POST(req: NextRequest) {
 
       console.log(`✅ Subscription activated for user ${intent.userId}`);
     }
+    else if (event === "membership.canceled" || event === "subscription.canceled") {
+      const reference = data.custom_id; 
+      const db = await getDatabase();
+
+      // Find the intent in your DB
+      const intent = await db.collection("payment_intents").findOne({ 
+        reference: reference 
+      });
+
+      if (!intent) {
+        return NextResponse.json({ error: "Intent not found" }, { status: 404 });
+      }
+
+      // Update the User in the DB to cancel subscription
+      await updateUserSubscription(intent.userId, {
+        subscriptionStatus: "canceled",
+        subscriptionEndDate: new Date(),
+      });
+
+      console.log(`✅ Subscription canceled for user ${intent.userId}`);
+    }
+
 
     return NextResponse.json({ received: true }, { status: 200 });
   } catch (error) {
