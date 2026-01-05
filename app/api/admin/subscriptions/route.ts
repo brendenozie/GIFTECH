@@ -67,7 +67,8 @@ export async function GET(req: Request) {
                     " ", 
                     { $ifNull: ["$userDetails.lastName", "User"] }
                   ] 
-                }
+                },
+                tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]}
               }
             }
           ]
