@@ -179,7 +179,7 @@ export default function SignalsPage() {
                 {hasAccess && <Badge className="bg-green-500 text-[10px] h-5">Verified</Badge>}
               </div>
               <h2 className="text-2xl font-black tracking-tight">
-                {hasAccess ? `${subscriptionType?.toUpperCase()} PRO` : "Trial Version"}
+                {hasAccess ? `${subscriptionType?.toUpperCase()} PRO` : "Trial Version (Indicator Locked)"}
               </h2>
             </div>
           </div>
