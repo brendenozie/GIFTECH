@@ -12,6 +12,8 @@ import { CreditCard, Wallet, Check } from "lucide-react";
 
 interface PaymentProviderModalProps {
   isOpen: boolean;
+  loading?: boolean;
+  setLoading?: (loading: boolean) => void;
   onClose: () => void;
   plan: any;
   onSelect: (provider: "whop" | "binance") => void;
@@ -19,6 +21,8 @@ interface PaymentProviderModalProps {
 
 export default function PaymentProviderModal({
   isOpen,
+  loading,
+  setLoading,
   onClose,
   plan,
   onSelect,
@@ -38,7 +42,10 @@ export default function PaymentProviderModal({
         <div className="grid gap-4 py-4">
           {/* Whop Provider */}
           <button
-            onClick={() => onSelect("whop")}
+            onClick={() => {
+              onSelect("whop");
+              if (setLoading) setLoading(true);
+            }}
             className="group relative flex items-center justify-between p-4 border rounded-xl hover:border-orange-500 hover:bg-orange-50/50 dark:hover:bg-orange-950/10 transition-all text-left"
           >
             <div className="flex items-center gap-4">

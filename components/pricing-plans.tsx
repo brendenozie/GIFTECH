@@ -48,7 +48,7 @@ export default function PricingPlans({
     if (onPlanSelect) {
       setSelectedPlanForPayment(plan);
       setIsModalOpen(true);
-      setLoadingState(true);
+      // setLoadingState(true);
     } else {
       // console.log("No onPlanSelect handler provided");
     }
@@ -56,7 +56,7 @@ export default function PricingPlans({
 
   const handleProviderSelect = (provider: "whop" | "binance") => {
     if (onPlanSelect && selectedPlanForPayment) {
-      setLoadingState(true);
+      // setLoadingState(true);
       onPlanSelect({ ...selectedPlanForPayment, provider });
       setIsModalOpen(false);
     }
@@ -138,7 +138,7 @@ export default function PricingPlans({
                   </Button>
                 </Link>
               ) : (
-                loadingState && currentPlan === "active" ? (
+                loadingState ? (
                   <Button
                     className="w-full bg-gray-400 text-white font-semibold cursor-not-allowed"
                     disabled
@@ -153,7 +153,7 @@ export default function PricingPlans({
                       : "bg-gray-600 hover:bg-gray-700"
                   } text-white font-semibold`}
                   onClick={() => {
-                      setLoadingState(true);
+                      // setLoadingState(true);
                       handlePlanAction({
                       planId: plan.name.toLowerCase().replace(" ", ""),
                       name: plan.name,
@@ -182,10 +182,23 @@ export default function PricingPlans({
 
       <PaymentProviderModal 
           isOpen={isModalOpen}
+          loading={loadingState}
+          setLoading={setLoadingState}
           onClose={() => setIsModalOpen(false)}
           plan={selectedPlanForPayment}
           onSelect={handleProviderSelect}
         />
+
+        {
+          loadingState && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow-lg flex flex-col items-center">
+                <div className="loader ease-linear rounded-full border-8 border-t-8 border-gray-200 h-16 w-16 mb-4"></div>
+                <p className="text-gray-900 dark:text-gray-100">Processing your subscription...</p>
+              </div>
+            </div>
+          )
+        }
     </>
   );
 }
