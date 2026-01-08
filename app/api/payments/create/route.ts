@@ -78,7 +78,8 @@ export async function POST(req: NextRequest) {
 
       // 3. Return the specific URL Whop generated for this user
       // session.purchase_url
-      return NextResponse.json({ checkoutUrl: session.checkout_url });
+      console.log("Whop Checkout URL:", session.purchase_url);
+      return NextResponse.json({ checkoutUrl: session.purchase_url });
     }
     
     // if (provider === "whop") {
