@@ -18,12 +18,10 @@ import {
   MoreVertical,
   Calendar,
   CreditCard,
-  User,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
-// Note: You would typically import these from your UI library
 const TABS = [
   { id: 'all', label: 'All Subscriptions' },
   { id: 'active', label: 'Active' },
@@ -48,6 +46,7 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingTotalPages, setPendingTotalPages] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkConfirmData, setBulkConfirmData] = useState<{ type: 'status' | 'extend'; value: string | number; label: string; } | null>(null);
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -63,11 +62,11 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
     }
   };
 
+  // -------------------- HANDLERS (Same logic as before) --------------------
   const authHeaders = useCallback(() => ({
     Authorization: `Bearer ${localStorage.getItem('token')}`,
   }), []);
 
-  // -------------------- DATA FETCHING --------------------
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
@@ -75,7 +74,7 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
       const [subRes, revRes, pendRes] = await Promise.all([
         fetch(`/api/admin/subscriptions?page=${currentPage}&limit=10&search=${encodeURIComponent(searchTerm)}${statusFilter}`, { headers: authHeaders() }),
         fetch('/api/admin/revenuev2', { headers: authHeaders() }),
-        fetch(`/api/admin/payments/pending?page=${pendingPage}&limit=5`, { headers: authHeaders() })
+        fetch(`/api/admin/payments/pending?page=${pendingPage}&limit=4`, { headers: authHeaders() }) // Adjusted limit for vertical flow
       ]);
 
       const subData = await subRes.json();
@@ -123,228 +122,277 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
     }
   };
 
-  const handleUpdateSubscription = async (id: string, updates: { endDate?: string; status?: string }) => {
-  setLoading(true);
-  try {
-    const res = await fetch('/api/admin/subscriptions/update', {
-      method: 'PATCH',
-      headers: { 
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`
-      },
-      body: JSON.stringify({ subscriptionId: id, ...updates }),
-    });
+  const handleUpdateSubscription = async (id: string, updates: any) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/subscriptions/update', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...authHeaders() },
+        body: JSON.stringify({ subscriptionId: id, ...updates }),
+      });
+      if (!res.ok) throw new Error();
+      toast({ title: 'Success', description: 'User updated.' });
+      fetchData();
+    } catch {
+      toast({ title: 'Error', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    if (!res.ok) throw new Error();
+  const confirmAndExecutev2 = () => {
+    if (!bulkConfirmData) return;
+    const updates = bulkConfirmData.type === 'status' 
+      ? { status: bulkConfirmData.value as string }
+      : { extendDays: bulkConfirmData.value as number };
+    // Call your handleBulkAction logic here
+    setBulkConfirmData(null);
+  };
 
-    toast({ title: 'Success', description: 'User status updated.' });
-    fetchData(); // Refresh the table
-  } catch (err) {
-    toast({ title: 'Error', description: 'Failed to update subscription.', variant: 'destructive' });
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Example usage for an "Extend 7 Days" button:
-const extendSevenDays = (sub: any) => {
-  const currentEnd = new Date(sub.endDate);
-  currentEnd.setDate(currentEnd.getDate() + 7);
-  handleUpdateSubscription(sub._id, { endDate: currentEnd.toISOString() });
-};
-
-// Example usage for a "Revoke" button:
-const revokeAccess = (id: string) => {
-  handleUpdateSubscription(id, { status: 'expired' });
-};
-
-const handleBulkAction = async (updates: { status?: string; extendDays?: number }) => {
-  setLoading(true);
-  try {
-    const res = await fetch('/api/admin/subscriptions/bulk', {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${localStorage.getItem('token')}`,
-      },
-      body: JSON.stringify({
-        ids: selectedIds, // The array of IDs from your state
-        ...updates,
-      }),
-    });
-
-    const data = await res.json();
-
-    if (!res.ok) throw new Error(data.error || 'Bulk update failed');
-
-    toast({
-      title: 'Bulk Action Complete',
-      description: `Successfully updated ${selectedIds.length} subscriptions.`,
-    });
-
-    // Reset selection and refresh data
-    setSelectedIds([]);
-    fetchData(); 
-  } catch (err: any) {
-    toast({
-      title: 'Error',
-      description: err.message,
-      variant: 'destructive',
-    });
-  } finally {
-    setLoading(false);
-  }
-};
-
-// Track what we are about to do
-const [bulkConfirmData, setBulkConfirmData] = useState<{
-  type: 'status' | 'extend';
-  value: string | number;
-  label: string;
-} | null>(null);
-
-// Triggered by the Floating Bar buttons
-const initiateBulkConfirm = (type: 'status' | 'extend', value: string | number, label: string) => {
-  setBulkConfirmData({ type, value, label });
-};
-
-// The actual execution
-const confirmAndExecute = () => {
-  if (!bulkConfirmData) return;
   
-  const updates = bulkConfirmData.type === 'status' 
-    ? { status: bulkConfirmData.value as string }
-    : { extendDays: bulkConfirmData.value as number };
+    const handlePaymentActionv2 = async (id: string, action: 'approve' | 'reject') => {
+      setProcessingId(id);
+      try {
+        const res = await fetch('/api/admin/payments/action', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...authHeaders() },
+          body: JSON.stringify({ intentId: id, action }),
+        });
+        if (!res.ok) throw new Error();
+        toast({ title: `Successfully ${action}ed` });
+        fetchData();
+      } catch {
+        toast({ title: 'Action failed', variant: 'destructive' });
+      } finally {
+        setProcessingId(null);
+      }
+    };
+  
+    const handleUpdateSubscriptionv2 = async (id: string, updates: { endDate?: string; status?: string }) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/subscriptions/update', {
+        method: 'PATCH',
+        headers: { 
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`
+        },
+        body: JSON.stringify({ subscriptionId: id, ...updates }),
+      });
+  
+      if (!res.ok) throw new Error();
+  
+      toast({ title: 'Success', description: 'User status updated.' });
+      fetchData(); // Refresh the table
+    } catch (err) {
+      toast({ title: 'Error', description: 'Failed to update subscription.', variant: 'destructive' });
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  // Example usage for an "Extend 7 Days" button:
+  const extendSevenDays = (sub: any) => {
+    const currentEnd = new Date(sub.endDate);
+    currentEnd.setDate(currentEnd.getDate() + 7);
+    handleUpdateSubscription(sub._id, { endDate: currentEnd.toISOString() });
+  };
+  
+  // Example usage for a "Revoke" button:
+  const revokeAccess = (id: string) => {
+    handleUpdateSubscription(id, { status: 'expired' });
+  };
+  
+  const handleBulkAction = async (updates: { status?: string; extendDays?: number }) => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/admin/subscriptions/bulk', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+        body: JSON.stringify({
+          ids: selectedIds, // The array of IDs from your state
+          ...updates,
+        }),
+      });
+  
+      const data = await res.json();
+  
+      if (!res.ok) throw new Error(data.error || 'Bulk update failed');
+  
+      toast({
+        title: 'Bulk Action Complete',
+        description: `Successfully updated ${selectedIds.length} subscriptions.`,
+      });
+  
+      // Reset selection and refresh data
+      setSelectedIds([]);
+      fetchData(); 
+    } catch (err: any) {
+      toast({
+        title: 'Error',
+        description: err.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  handleBulkAction(updates);
-  setBulkConfirmData(null); // Close modal
-};
+  
+  // Triggered by the Floating Bar buttons
+  const initiateBulkConfirm = (type: 'status' | 'extend', value: string | number, label: string) => {
+    setBulkConfirmData({ type, value, label });
+  };
+  
+  // The actual execution
+  const confirmAndExecute = () => {
+    if (!bulkConfirmData) return;
+    
+    const updates = bulkConfirmData.type === 'status' 
+      ? { status: bulkConfirmData.value as string }
+      : { extendDays: bulkConfirmData.value as number };
+  
+    handleBulkAction(updates);
+    setBulkConfirmData(null); // Close modal
+  };
+  
 
   return (
-    <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
+    <div className="p-4 md:p-8 max-w-[1400px] mx-auto space-y-10 bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
       
-      {/* 1. TOP NAV / HEADER */}
+      {/* 1. HEADER */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-2xl font-extrabold tracking-tight text-slate-900 flex items-center gap-2">
             <CreditCard className="w-6 h-6 text-indigo-600" />
-            Subscription Ledger
+            Subscription Management
           </h1>
-          <p className="text-slate-500 text-sm mt-1">Real-time financial monitoring and user access control.</p>
+          <p className="text-slate-500 text-sm mt-1">Manage user access and verify incoming payments.</p>
         </div>
 
         <div className="flex items-center gap-3">
           <div className="relative group">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-indigo-500 transition-colors" />
             <input
-              className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm w-full md:w-80 shadow-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all"
-              placeholder="Search by name, email, or TV user..."
+              className="pl-10 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm w-full md:w-80 shadow-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+              placeholder="Search users..."
               value={searchTerm}
               onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
             />
           </div>
-          <Button variant="outline" className="shadow-sm border-slate-200" onClick={fetchData}>
-            <RefreshCw className={`w-4 h-4 text-slate-600 ${loading ? 'animate-spin' : ''}`} />
+          <Button variant="outline" className="bg-white" onClick={fetchData}>
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
 
-      {/* 2. STATS GRID */}
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+      {/* 2. STATS GRID (Full Width) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard title="Total Revenue" value={`$${stats.revenue.toLocaleString()}`} icon={<TrendingUp />} trend="+12.5%" color="indigo" />
         <StatCard title="Active Users" value={stats.active} icon={<UserCheck />} color="emerald" />
         <StatCard title="Action Required" value={stats.pending} icon={<Clock />} color="amber" />
         <StatCard title="Churned" value={stats.expired} icon={<AlertCircle />} color="slate" />
       </div>
 
-      <div className="gap-10 items-start ">
-        {/* 3. MAIN DATABASE */}
-        {/* xl:col-span-8  */}
-        <div className="space-y-4">
-          <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
-            {/* Table Filters */}
-            <div className="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-4 bg-slate-50/50">
-              <div className="flex bg-slate-200/50 p-1 rounded-xl">
-                {TABS.map((tab) => (
-                  <button
-                    key={tab.id}
-                    onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }}
-                    className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
-                      activeTab === tab.id 
-                      ? 'bg-white text-slate-900 shadow-sm' 
-                      : 'text-slate-500 hover:text-slate-700'
-                    }`}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
-              </div>
-              <Button variant="ghost" size="sm" className="text-slate-500 gap-2">
-                <Filter className="w-3.5 h-3.5" />
-                Advanced Filters
-              </Button>
-            </div>
+      <hr className="border-slate-200" />
 
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
-                    <th className="px-4 py-4">
-                      <input 
-                        type="checkbox" 
-                        checked={selectedIds.length === subscriptions.length}
-                        onChange={toggleSelectAll}
-                        className="rounded border-slate-300 accent-indigo-600"
-                      />
-                    </th>
-                    <th className="px-6 py-4 text-left font-bold">Subscriber</th>
-                    <th className="px-6 py-4 text-left font-bold">Status</th>
-                    <th className="px-6 py-4 text-left font-bold">Timeline</th>
-                    <th className="px-6 py-4 text-right font-bold">Investment</th>
-                    <th className="px-6 py-4"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {subscriptions.map((sub) => (
-                    <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors group">
-                      <td className="px-4 py-4">
-                        <input 
-                          type="checkbox" 
-                          checked={selectedIds.includes(sub._id)}
-                          onChange={() => toggleSelect(sub._id)}
-                          className="rounded border-slate-300 accent-indigo-600"
-                        />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs">
-                            {sub.userName?.charAt(0) || 'U'}
-                          </div>
-                          <div>
-                            <div className="font-bold text-slate-900 text-sm">{sub.userName}</div>
-                            <div className="text-[10px] text-indigo-600 font-bold uppercase">{sub.plan}</div>
-                          </div>
+      {/* 3. PENDING ACTIONS (Now a full-width section) */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
+              <ShieldAlert className="w-5 h-5 text-amber-600" />
+            </div>
+            <h3 className="text-lg font-bold text-slate-800 tracking-tight">Verification Queue</h3>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold text-slate-400 uppercase mr-2">{stats.pending} Pending</span>
+            <Button variant="outline" size="sm" disabled={pendingPage === 1} onClick={() => setPendingPage(p => p - 1)}><ChevronLeft className="w-4 h-4"/></Button>
+            <Button variant="outline" size="sm" disabled={pendingPage === pendingTotalPages} onClick={() => setPendingPage(p => p + 1)}><ChevronRight className="w-4 h-4"/></Button>
+          </div>
+        </div>
+
+        {pendingPayments.length > 0 ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {pendingPayments.map((pay) => (
+              <PendingCard key={pay._id} pay={pay} onAction={handlePaymentAction} processingId={processingId} />
+            ))}
+          </div>
+        ) : (
+          <div className="py-10 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">No pending verifications</p>
+          </div>
+        )}
+      </section>
+
+      {/* 4. MAIN DATABASE (Now a full-width section) */}
+      <section className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-bold text-slate-800 tracking-tight">Subscriber Ledger</h3>
+          <div className="flex bg-slate-200/50 p-1 rounded-xl">
+            {TABS.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => { setActiveTab(tab.id); setCurrentPage(1); }}
+                className={`px-4 py-1.5 text-xs font-bold rounded-lg transition-all ${
+                  activeTab === tab.id ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200 rounded-3xl shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead className="bg-slate-50/50 border-b border-slate-100">
+                <tr className="text-[10px] uppercase tracking-widest text-slate-400">
+                  <th className="px-6 py-4 text-center w-10">
+                    <input type="checkbox" checked={selectedIds.length === subscriptions.length} onChange={() => {toggleSelectAll()}} className="rounded accent-indigo-600" />
+                  </th>
+                  <th className="px-6 py-4 text-left font-bold">Subscriber</th>
+                  <th className="px-6 py-4 text-left font-bold">Status</th>
+                  <th className="px-6 py-4 text-left font-bold">Timeline</th>
+                  <th className="px-6 py-4 text-right font-bold">Price</th>
+                  <th className="px-6 py-4"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {subscriptions.map((sub) => (
+                  <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors group">
+                    <td className="px-6 py-4 text-center">
+                      <input type="checkbox" checked={selectedIds.includes(sub._id)} onChange={() => {toggleSelect(sub._id)}} className="rounded accent-indigo-600" />
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-xs">
+                          {sub.userName?.charAt(0)}
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <StatusBadge status={sub.status} />
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-col gap-1">
-                           <div className="flex items-center gap-1.5 text-xs text-slate-600">
-                             <Calendar className="w-3 h-3 text-slate-400" />
-                             {new Date(sub.endDate).toLocaleDateString()}
-                           </div>
-                           <div className="w-24 h-1 bg-slate-100 rounded-full overflow-hidden">
-                             <div className="h-full bg-indigo-500 w-2/3" /> {/* Example progress */}
-                           </div>
+                        <div>
+                          <div className="font-bold text-slate-900 text-sm">{sub.userName}</div>
+                          <div className="text-[10px] text-indigo-600 font-bold uppercase">{sub.plan}</div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <span className="font-mono font-bold text-slate-700">${sub.price}</span>
-                      </td>
-                      <td className="px-6 py-4 text-right">
-                        <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <StatusBadge status={sub.status} />
+                    </td>
+                    <td className="px-6 py-4 text-xs text-slate-600">
+                      <div className="flex items-center gap-2">
+                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                        {new Date(sub.endDate).toLocaleDateString()}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right font-mono font-bold text-slate-700">
+                      ${sub.price}
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <button className="p-2 text-slate-400 hover:text-slate-900 transition-colors">
                           {/* <MoreVertical className="w-4 h-4" /> */}
                           {/* // Add this inside your table row (tr) under the "MoreVertical" button */}
                           <DropdownMenu>
@@ -361,251 +409,119 @@ const confirmAndExecute = () => {
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              {selectedIds.length > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-4 z-50">
-                  <span className="text-sm font-bold border-r border-slate-700 pr-6">
-                    {selectedIds.length} Selected
-                  </span>
-                  
-                  <div className="flex gap-2">
-                      <Button 
-                        size="sm" 
-                        className="bg-emerald-600"
-                        onClick={() => initiateBulkConfirm('status', 'active', 'Set to Active')}
-                      >
-                        Activate All
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-white border-slate-700"
-                        onClick={() => initiateBulkConfirm('status', 'expired', 'Mark as Expired')}
-                      >
-                        Expire All
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="text-white border-slate-700"
-                        onClick={() => initiateBulkConfirm('extend', 7, 'Extend by 7 Days')}
-                      >
-                        +7 Days Access
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-slate-400"
-                        onClick={() => setSelectedIds([])}
-                      >
-                        Cancel
-                      </Button>
-                    </div>
-                  {/* <div className="flex gap-2">
+                      {/* <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm"><MoreVertical className="w-4 h-4" /></Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => {}}>Extend 7 Days</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">Revoke Access</DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu> */}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+            
+          </div>
+          
+          <div className="p-4 border-t border-slate-100 flex items-center justify-between bg-slate-50/30">
+            <p className="text-xs font-medium text-slate-500">Page {currentPage} of {totalPages}</p>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" disabled={currentPage === 1} onClick={() => setCurrentPage(p => p - 1)}>Previous</Button>
+              <Button variant="outline" size="sm" disabled={currentPage === totalPages} onClick={() => setCurrentPage(p => p + 1)}>Next</Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Floating Bulk Action Bar (Same as before) */}
+      {selectedIds.length > 0 && (
+              <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-4 z-50">
+                <span className="text-sm font-bold border-r border-slate-700 pr-6">
+                  {selectedIds.length} Selected
+                </span>
+                
+                <div className="flex gap-2">
                     <Button 
                       size="sm" 
-                      className="bg-emerald-600 hover:bg-emerald-700"
-                      onClick={() => handleBulkAction({ status: 'active' })}
+                      className="bg-emerald-600"
+                      onClick={() => initiateBulkConfirm('status', 'active', 'Set to Active')}
                     >
                       Activate All
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline" 
-                      className="text-white border-slate-700 hover:bg-slate-800"
-                      onClick={() => handleBulkAction({ status: 'expired' })}
+                      className="text-white border-slate-700"
+                      onClick={() => initiateBulkConfirm('status', 'expired', 'Mark as Expired')}
                     >
                       Expire All
                     </Button>
                     <Button 
                       size="sm" 
                       variant="outline"
-                      className="text-white border-slate-700 hover:bg-slate-800"
-                      onClick={() => handleBulkAction({ extendDays: 7 })}
+                      className="text-white border-slate-700"
+                      onClick={() => initiateBulkConfirm('extend', 7, 'Extend by 7 Days')}
                     >
                       +7 Days Access
                     </Button>
-                    
-                    <Button 
-                      size="sm" 
-                      variant="ghost" 
-                      className="text-slate-400 hover:text-white"
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="text-slate-400"
                       onClick={() => setSelectedIds([])}
                     >
                       Cancel
                     </Button>
-                  </div> */}
-                </div>
-              )}
-            </div>
-
-            {/* Pagination */}
-            <div className="p-4 border-t border-slate-100 flex items-center justify-between">
-              <p className="text-xs font-medium text-slate-500">
-                Showing <span className="text-slate-900 font-bold">{subscriptions.length}</span> results
-              </p>
-              <div className="flex gap-1">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="rounded-lg h-8 px-2"
-                  disabled={currentPage === 1}
-                  onClick={() => setCurrentPage(p => p - 1)}
-                >
-                  <ChevronLeft className="w-4 h-4" />
-                </Button>
-                <div className="flex items-center px-3 text-xs font-bold text-slate-600">
-                  {currentPage} / {totalPages}
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="rounded-lg h-8 px-2"
-                  disabled={currentPage === totalPages}
-                  onClick={() => setCurrentPage(p => p + 1)}
-                >
-                  <ChevronRight className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
-
-          {/* 4. PENDING ACTIONS  */}
-       <div className="space-y-6 mt-8">
-          {/* Header with Glass Effect Label */}
-          <div className="flex items-center justify-between px-1">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100 shadow-sm">
-                <ShieldAlert className="w-5 h-5 text-amber-600" />
-              </div>
-              <div>
-                <h3 className="text-sm font-black uppercase tracking-tight text-slate-800">
-                  Verification Queue
-                </h3>
-                <p className="text-[10px] text-slate-500 font-medium">Pending manual approval</p>
-              </div>
-            </div>
-            <span className="bg-slate-900 text-white px-3 py-1 rounded-full text-[10px] font-bold shadow-lg shadow-slate-200">
-              {stats.pending} Requests
-            </span>
-          </div>
-
-          {/* Scrollable Card Container */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4">
-            {pendingPayments.length > 0 ? (
-              pendingPayments.map((pay) => (
-                <div 
-                  key={pay._id} 
-                  className="group relative bg-white border border-slate-200 rounded-[1.5rem] p-5 transition-all duration-300 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-50/50 overflow-hidden"
-                >
-                  {/* Status Indicator Bar */}
-                  <div className="absolute top-0 left-0 w-full h-1 bg-slate-50 group-hover:bg-indigo-50 transition-colors" />
-                  <div className="absolute top-0 left-0 h-1 bg-amber-400 w-1/3 group-hover:w-full transition-all duration-500" />
-
-                  {/* User & Amount Info */}
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 font-bold text-xs border border-slate-200 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
-                        {pay.userName?.charAt(0) || 'G'}
-                      </div>
-                      <div>
-                        <h4 className="font-bold text-slate-900 text-sm">{pay.userName || 'Guest'}</h4>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[9px] font-black text-indigo-600 uppercase tracking-widest bg-indigo-50 px-1.5 py-0.5 rounded">
-                            {pay.planId}
-                          </span>
-                          <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                            via {pay.provider}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <span className="block text-lg font-black text-slate-900 leading-none">${pay.amount}</span>
-                      <span className="text-[9px] font-bold text-slate-400 uppercase">Settlement</span>
-                    </div>
                   </div>
-
-                  {/* Contact Metadata Box */}
-                  <div className="bg-slate-50/50 rounded-xl p-3 mb-5 space-y-2 border border-slate-100 group-hover:bg-white group-hover:border-indigo-50 transition-colors">
-                    <div className="flex items-center gap-2 text-[11px] text-slate-600 font-medium">
-                      <Mail className="w-3 h-3 text-slate-400" />
-                      {pay.email}
-                    </div>
-                    {pay.phoneNumber && (
-                      <div className="flex items-center gap-2 text-[11px] text-slate-600 font-medium">
-                        <Phone className="w-3 h-3 text-slate-400" />
-                        {pay.phoneNumber}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Action Buttons */}
-                  <div className="flex gap-2">
-                    <Button 
-                      onClick={() => handlePaymentAction(pay._id, 'approve')}
-                      className="flex-[2] bg-slate-900 hover:bg-indigo-600 text-white rounded-xl h-10 text-[11px] font-bold transition-all shadow-md active:scale-95"
-                      disabled={!!processingId}
-                    >
-                      {processingId === pay._id ? <RefreshCw className="animate-spin w-3 h-3" /> : 'Confirm Release'}
-                    </Button>
-                    <Button 
-                      variant="outline"
-                      onClick={() => handlePaymentAction(pay._id, 'reject')}
-                      className="flex-1 rounded-xl h-10 px-3 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-100 text-[11px] font-bold transition-all"
-                      disabled={!!processingId}
-                    >
-                      Decline
-                    </Button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 px-6 border-2 border-dashed border-slate-200 rounded-[2rem] bg-slate-50/50">
-                <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center mb-3 shadow-sm">
-                  <RefreshCw className="w-5 h-5 text-slate-300" />
-                </div>
-                <p className="text-sm font-bold text-slate-400">All cleared</p>
-                <p className="text-[10px] text-slate-300 uppercase tracking-tighter">No pending verifications</p>
+                {/* <div className="flex gap-2">
+                  <Button 
+                    size="sm" 
+                    className="bg-emerald-600 hover:bg-emerald-700"
+                    onClick={() => handleBulkAction({ status: 'active' })}
+                  >
+                    Activate All
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    className="text-white border-slate-700 hover:bg-slate-800"
+                    onClick={() => handleBulkAction({ status: 'expired' })}
+                  >
+                    Expire All
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    className="text-white border-slate-700 hover:bg-slate-800"
+                    onClick={() => handleBulkAction({ extendDays: 7 })}
+                  >
+                    +7 Days Access
+                  </Button>
+                  
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="text-slate-400 hover:text-white"
+                    onClick={() => setSelectedIds([])}
+                  >
+                    Cancel
+                  </Button>
+                </div> */}
               </div>
             )}
-          </div>
-
-          {/* Pagination: Modern Mini-style */}
-          {pendingTotalPages > 1 && (
-            <div className="flex items-center justify-between bg-white/50 border border-slate-200/60 p-2 rounded-2xl">
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="h-8 w-8 p-0 rounded-xl hover:bg-white shadow-sm"
-                disabled={pendingPage === 1}
-                onClick={() => setPendingPage(p => p - 1)}
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </Button>
-              
-              <div className="text-[10px] font-black text-slate-400 tracking-widest uppercase">
-                Page <span className="text-slate-900">{pendingPage}</span> / {pendingTotalPages}
-              </div>
-
-              <Button
-                variant="ghost" 
-                size="sm" 
-                className="h-8 w-8 p-0 rounded-xl hover:bg-white shadow-sm"
-                disabled={pendingPage === pendingTotalPages}
-                onClick={() => setPendingPage(p => p + 1)}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </Button>
+      {/* {selectedIds.length > 0 && (
+         <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 z-50 animate-in slide-in-from-bottom-4">
+            <span className="text-sm font-bold border-r border-slate-700 pr-6">{selectedIds.length} Selected</span>
+            <div className="flex gap-2">
+              <Button size="sm" className="bg-emerald-600">Activate All</Button>
+              <Button size="sm" variant="outline" className="text-white border-slate-700" onClick={() => setSelectedIds([])}>Cancel</Button>
             </div>
-          )}
-        </div>
-      </div>
+         </div>
+      )} */}
 
 
       {bulkConfirmData && (
@@ -641,11 +557,49 @@ const confirmAndExecute = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 }
 
-/* -------------------- REFINED SUB COMPONENTS -------------------- */
+/* -------------------- REFINED COMPONENTS -------------------- */
+
+function PendingCard({ pay, onAction, processingId }: any) {
+  return (
+    <div className="bg-white border border-slate-200 rounded-2xl p-4 shadow-sm hover:shadow-md transition-all">
+      <div className="flex justify-between items-start mb-3">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center font-bold text-xs">{pay.userName?.charAt(0)}</div>
+          <div>
+            <h4 className="font-bold text-sm text-slate-900">{pay.userName}</h4>
+            <p className="text-[10px] text-slate-400 font-bold uppercase">{pay.provider}</p>
+          </div>
+        </div>
+        <span className="text-sm font-black text-indigo-600">${pay.amount}</span>
+      </div>
+      <div className="text-[11px] text-slate-500 mb-4 bg-slate-50 p-2 rounded-lg truncate">
+        {pay.email}
+      </div>
+      <div className="flex gap-2">
+        <Button 
+          onClick={() => onAction(pay._id, 'approve')}
+          className="flex-1 h-8 text-[10px] font-bold bg-slate-900"
+          disabled={!!processingId}
+        >
+          {processingId === pay._id ? <RefreshCw className="animate-spin w-3 h-3" /> : 'Approve'}
+        </Button>
+        <Button 
+          variant="outline"
+          onClick={() => onAction(pay._id, 'reject')}
+          className="flex-1 h-8 text-[10px] font-bold hover:bg-rose-50"
+          disabled={!!processingId}
+        >
+          Decline
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 function StatCard({ title, value, icon, color, trend }: any) {
   const colors: any = {
@@ -654,21 +608,14 @@ function StatCard({ title, value, icon, color, trend }: any) {
     amber: 'bg-amber-50 text-amber-600 border-amber-100',
     slate: 'bg-slate-50 text-slate-600 border-slate-100',
   };
-
   return (
-    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm flex flex-col gap-4">
-      <div className="flex justify-between items-start">
+    <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-sm">
+      <div className="flex justify-between items-center mb-4">
         <div className={`p-2 rounded-xl ${colors[color]}`}>{icon}</div>
-        {trend && (
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">
-            {trend}
-          </span>
-        )}
+        {trend && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{trend}</span>}
       </div>
-      <div>
-        <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{title}</p>
-        <p className="text-2xl font-black text-slate-900 mt-1">{value}</p>
-      </div>
+      <p className="text-[11px] font-bold uppercase tracking-widest text-slate-400">{title}</p>
+      <p className="text-2xl font-black text-slate-900">{value}</p>
     </div>
   );
 }
@@ -679,7 +626,6 @@ function StatusBadge({ status }: { status: string }) {
     expired: 'bg-red-50 text-red-700 border-red-100',
     trial: 'bg-indigo-50 text-indigo-700 border-indigo-100',
   };
-
   return (
     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase border ${styles[status] || styles.expired}`}>
       {status}
