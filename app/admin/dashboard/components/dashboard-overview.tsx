@@ -111,9 +111,9 @@ export default function DashboardOverview({ admin }: { admin: any }) {
 
         <MetricCard
           title="Revenue"
-          value={`KES ${stats?.revenue.total.toLocaleString()}`}
+          value={`$ ${stats?.revenue.total.toLocaleString()}`}
           icon="DollarSign"
-          subtitle={`Weekly: KES ${stats?.revenue.weekly.toLocaleString()}`}
+          subtitle={`Weekly: $ ${stats?.revenue.weekly.toLocaleString()}`}
         />
 
         <MetricCard

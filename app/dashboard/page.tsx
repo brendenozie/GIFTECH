@@ -266,8 +266,7 @@ export default function DashboardPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {/* Welcome back, {user.firstName}! */}
-              Welcome back, TEST
+              Welcome back, {user.firstName}!
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
               Your trading dashboard and signals overview

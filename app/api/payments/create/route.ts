@@ -63,6 +63,8 @@ export async function POST(req: NextRequest) {
           metadata: { 
             custom_id: reference // This comes back in the webhook later
           },
+          // success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
+          // cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
           redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?status=success`
         }),
       });
