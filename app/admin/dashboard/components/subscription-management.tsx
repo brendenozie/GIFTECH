@@ -47,6 +47,21 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
   const [totalPages, setTotalPages] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingTotalPages, setPendingTotalPages] = useState(1);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIds.length === subscriptions.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(subscriptions.map(s => s._id));
+    }
+  };
 
   const authHeaders = useCallback(() => ({
     Authorization: `Bearer ${localStorage.getItem('token')}`,
@@ -143,6 +158,44 @@ const revokeAccess = (id: string) => {
   handleUpdateSubscription(id, { status: 'expired' });
 };
 
+const handleBulkAction = async (updates: { status?: string; extendDays?: number }) => {
+  setLoading(true);
+  try {
+    const res = await fetch('/api/admin/subscriptions/bulk', {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+      },
+      body: JSON.stringify({
+        ids: selectedIds, // The array of IDs from your state
+        ...updates,
+      }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) throw new Error(data.error || 'Bulk update failed');
+
+    toast({
+      title: 'Bulk Action Complete',
+      description: `Successfully updated ${selectedIds.length} subscriptions.`,
+    });
+
+    // Reset selection and refresh data
+    setSelectedIds([]);
+    fetchData(); 
+  } catch (err: any) {
+    toast({
+      title: 'Error',
+      description: err.message,
+      variant: 'destructive',
+    });
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
     <div className="p-4 md:p-8 max-w-[1600px] mx-auto space-y-8 bg-[#F8FAFC] min-h-screen font-sans text-slate-900">
       
@@ -214,6 +267,14 @@ const revokeAccess = (id: string) => {
               <table className="w-full">
                 <thead>
                   <tr className="text-[10px] uppercase tracking-widest text-slate-400 border-b border-slate-100">
+                    <th className="px-4 py-4">
+                      <input 
+                        type="checkbox" 
+                        checked={selectedIds.length === subscriptions.length}
+                        onChange={toggleSelectAll}
+                        className="rounded border-slate-300 accent-indigo-600"
+                      />
+                    </th>
                     <th className="px-6 py-4 text-left font-bold">Subscriber</th>
                     <th className="px-6 py-4 text-left font-bold">Status</th>
                     <th className="px-6 py-4 text-left font-bold">Timeline</th>
@@ -224,6 +285,14 @@ const revokeAccess = (id: string) => {
                 <tbody className="divide-y divide-slate-50">
                   {subscriptions.map((sub) => (
                     <tr key={sub._id} className="hover:bg-slate-50/50 transition-colors group">
+                      <td className="px-4 py-4">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedIds.includes(sub._id)}
+                          onChange={() => toggleSelect(sub._id)}
+                          className="rounded border-slate-300 accent-indigo-600"
+                        />
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs">
@@ -275,6 +344,48 @@ const revokeAccess = (id: string) => {
                   ))}
                 </tbody>
               </table>
+              {selectedIds.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-4 rounded-2xl shadow-2xl flex items-center gap-6 animate-in slide-in-from-bottom-4 z-50">
+                  <span className="text-sm font-bold border-r border-slate-700 pr-6">
+                    {selectedIds.length} Selected
+                  </span>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      onClick={() => handleBulkAction({ status: 'active' })}
+                    >
+                      Activate All
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-white border-slate-700 hover:bg-slate-800"
+                      onClick={() => handleBulkAction({ status: 'expired' })}
+                    >
+                      Expire All
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="text-white border-slate-700 hover:bg-slate-800"
+                      onClick={() => handleBulkAction({ extendDays: 7 })}
+                    >
+                      +7 Days Access
+                    </Button>
+                    
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      className="text-slate-400 hover:text-white"
+                      onClick={() => setSelectedIds([])}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
