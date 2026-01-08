@@ -40,13 +40,20 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(false);
   const [processingId, setProcessingId] = useState<string | null>(null);
-
+  // const [isQueueOpen, setIsQueueOpen] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [pendingPage, setPendingPage] = useState(1);
   const [pendingTotalPages, setPendingTotalPages] = useState(1);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [bulkConfirmData, setBulkConfirmData] = useState<{ type: 'status' | 'extend'; value: string | number; label: string; } | null>(null);
+ const [isQueueOpen, setIsQueueOpen] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('admin_queue_expanded');
+      return saved !== null ? JSON.parse(saved) : true;
+    }
+    return true;
+  });
 
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => 
@@ -140,14 +147,12 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
     }
   };
 
-  const confirmAndExecutev2 = () => {
-    if (!bulkConfirmData) return;
-    const updates = bulkConfirmData.type === 'status' 
-      ? { status: bulkConfirmData.value as string }
-      : { extendDays: bulkConfirmData.value as number };
-    // Call your handleBulkAction logic here
-    setBulkConfirmData(null);
-  };
+ 
+
+// 2. Sync changes to localStorage
+useEffect(() => {
+  localStorage.setItem('admin_queue_expanded', JSON.stringify(isQueueOpen));
+}, [isQueueOpen]);
   
   // Example usage for an "Extend 7 Days" button:
   const extendSevenDays = (sub: any) => {
@@ -257,8 +262,84 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
 
       <hr className="border-slate-200" />
 
+      <section className="space-y-6 transition-all duration-300">
+        <div 
+          className="flex items-center justify-between cursor-pointer group select-none"
+          onClick={() => setIsQueueOpen(!isQueueOpen)}
+        >
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-xl flex items-center justify-center border transition-all ${
+              isQueueOpen ? 'bg-amber-50 border-amber-100' : 'bg-slate-100 border-slate-200'
+            }`}>
+              <ShieldAlert className={`w-5 h-5 ${isQueueOpen ? 'text-amber-600' : 'text-slate-400'}`} />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-slate-800 tracking-tight flex items-center gap-2">
+                Verification Queue
+                {!isQueueOpen && stats.pending > 0 && (
+                   <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full animate-pulse">
+                     {stats.pending}
+                   </span>
+                )}
+              </h3>
+              <p className="text-[11px] text-slate-400 font-medium">
+                {isQueueOpen ? 'Click to minimize' : 'Click to expand pending requests'}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {isQueueOpen && (
+              <div className="hidden md:flex items-center gap-2 mr-4">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  disabled={pendingPage === 1} 
+                  onClick={(e) => { e.stopPropagation(); setPendingPage(p => p - 1); }}
+                >
+                  <ChevronLeft className="w-4 h-4"/>
+                </Button>
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                  {pendingPage} / {pendingTotalPages}
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-8 w-8 p-0"
+                  disabled={pendingPage === pendingTotalPages} 
+                  onClick={(e) => { e.stopPropagation(); setPendingPage(p => p + 1); }}
+                >
+                  <ChevronRight className="w-4 h-4"/>
+                </Button>
+              </div>
+            )}
+            <div className={`p-2 rounded-full group-hover:bg-slate-100 transition-transform duration-300 ${isQueueOpen ? 'rotate-180' : 'rotate-0'}`}>
+              <ChevronRight className="w-5 h-5 text-slate-400" />
+            </div>
+          </div>
+        </div>
+
+        {/* Collapsible Content */}
+        {isQueueOpen && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300">
+            {pendingPayments.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {pendingPayments.map((pay) => (
+                  <PendingCard key={pay._id} pay={pay} onAction={handlePaymentAction} processingId={processingId} />
+                ))}
+              </div>
+            ) : (
+              <div className="py-10 text-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">All verifications cleared</p>
+              </div>
+            )}
+          </div>
+        )}
+      </section>
+
       {/* 3. PENDING ACTIONS (Now a full-width section) */}
-      <section className="space-y-6">
+      {/* <section className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center border border-amber-100">
@@ -284,7 +365,7 @@ export default function SubscriptionManagement({ admin }: { admin: any }) {
             <p className="text-sm font-medium text-slate-400 uppercase tracking-widest">No pending verifications</p>
           </div>
         )}
-      </section>
+      </section> */}
 
       {/* 4. MAIN DATABASE (Now a full-width section) */}
       <section className="space-y-4">
