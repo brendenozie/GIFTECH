@@ -18,6 +18,7 @@ import {
   MoreVertical,
   Calendar,
   CreditCard,
+  ChevronDown,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -315,7 +316,7 @@ useEffect(() => {
               </div>
             )}
             <div className={`p-2 rounded-full group-hover:bg-slate-100 transition-transform duration-300 ${isQueueOpen ? 'rotate-180' : 'rotate-0'}`}>
-              <ChevronRight className="w-5 h-5 text-slate-400" />
+              <ChevronDown className="w-5 h-5 text-slate-400" />
             </div>
           </div>
         </div>
