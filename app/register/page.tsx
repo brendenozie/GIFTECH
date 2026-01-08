@@ -47,6 +47,11 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!formData.tradingviewUsername.trim()) {
+      setError('TradingView username is required to activate your signals');
+      return;
+    }
+
     if (formData.password !== formData.confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -194,9 +199,15 @@ export default function RegisterPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="lastName" className="text-black dark:text-white">Tradingview Username  *</Label>
+                <Label
+                  htmlFor="tradingviewUsername"
+                  className="text-black dark:text-white font-semibold"
+                >
+                  TradingView Username <span className="text-red-500">*</span>
+                </Label>
+
                 <Input
                   id="tradingviewUsername"
                   name="tradingviewUsername"
@@ -204,10 +215,15 @@ export default function RegisterPage() {
                   required
                   value={formData.tradingviewUsername}
                   onChange={handleChange}
-                  autoComplete="email"
-                  className="bg-white dark:bg-black border-gray-300 dark:border-gray-600 text-black dark:text-white"
+                  placeholder="e.g. john_fxtrader"
+                  className="bg-white dark:bg-black border-red-500 focus:border-red-600 focus:ring-red-500 text-black dark:text-white"
                 />
+
+                <p className="text-xs text-gray-600 dark:text-gray-400">
+                  ⚠️ Required to add you to our private TradingView signals & alerts.
+                </p>
               </div>
+
               
               <div className="space-y-2">
                 <Label htmlFor="email" className="text-black dark:text-white">Email *</Label>

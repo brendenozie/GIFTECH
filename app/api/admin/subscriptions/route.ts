@@ -10,6 +10,104 @@ export async function GET(req: Request) {
     const page = parseInt(searchParams.get("page") || "1");
     const limit = parseInt(searchParams.get("limit") || "10");
     const search = searchParams.get("search") || "";
+    const statusFilter = searchParams.get("status"); // New: capture status
+    const skip = (page - 1) * limit;
+
+    // 1. Base Match Stage (Search)
+    const matchStage: any = search ? {
+      $or: [
+        { "userDetails.firstName": { $regex: search, $options: "i" } },
+        { "userDetails.lastName": { $regex: search, $options: "i" } },
+        { "userDetails.email": { $regex: search, $options: "i" } },
+        { planId: { $regex: search, $options: "i" } }
+      ]
+    } : {};
+
+    // 2. Status Filter Stage (Conditional)
+    if (statusFilter && statusFilter !== 'all') {
+      matchStage.status = statusFilter;
+    }
+
+    const pipeline = [
+      { $addFields: { convertedUserId: { $toObjectId: "$userId" } } },
+      {
+        $lookup: {
+          from: "users",
+          localField: "convertedUserId",
+          foreignField: "_id",
+          as: "userDetails"
+        }
+      },
+      { $unwind: { path: "$userDetails", preserveNullAndEmptyArrays: true } },
+      { $match: matchStage }, // Filtered by Search AND Status
+      {
+        $facet: {
+          metadata: [{ $count: "total" }],
+          data: [
+            { $sort: { startDate: -1 } },
+            { $skip: skip },
+            { $limit: limit },
+            {
+              $project: {
+                _id: 1,
+                plan: "$planId",
+                price: "$amount",
+                status: 1,
+                startDate: 1,
+                endDate: 1,
+                userName: { 
+                  $concat: [
+                    { $ifNull: ["$userDetails.firstName", "Guest"] }, 
+                    " ", 
+                    { $ifNull: ["$userDetails.lastName", "User"] }
+                  ] 
+                },
+                tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]}
+              }
+            }
+          ],
+          // New: Generate counts for the UI StatCards in the same query
+          stats: [
+            {
+              $group: {
+                _id: null,
+                activeCount: { $sum: { $cond: [{ $eq: ["$status", "active"] }, 1, 0] } },
+                expiredCount: { $sum: { $cond: [{ $eq: ["$status", "expired"] }, 1, 0] } }
+              }
+            }
+          ]
+        }
+      }
+    ];
+
+    const result = await db.collection("subscriptions").aggregate(pipeline).toArray();
+    
+    const subscriptions = result[0].data;
+    const totalCount = result[0].metadata[0]?.total || 0;
+    const stats = result[0].stats[0] || { activeCount: 0, expiredCount: 0 };
+
+    return NextResponse.json({ 
+      subscriptions, 
+      totalPages: Math.ceil(totalCount / limit),
+      totalCount,
+      activeCount: stats.activeCount,
+      expiredCount: stats.expiredCount
+    });
+
+  } catch (error) {
+    console.error("Sub API Error:", error);
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}
+
+export async function GETV1(req: Request) {
+  try {
+    const db = await getDatabase();
+    const { searchParams } = new URL(req.url);
+    
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+    const search = searchParams.get("search") || "";
     const skip = (page - 1) * limit;
 
     // 1. Build the Match stage for searching

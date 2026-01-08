@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
           role: "affiliate", // Upgraded from 'user'
           affiliateProfile: {
             referralCode: `aff-${decoded.userId.slice(-6)}`,
-            commissionRate: 0.15, // Standard 15%
+            commissionRate: 0.10, // Standard 10%
             totalEarnings: 0,
             totalReferrals: 0,
             isActive: false, // Wait for admin
