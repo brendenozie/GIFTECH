@@ -63,9 +63,9 @@ export async function POST(req: NextRequest) {
           metadata: { 
             custom_id: reference // This comes back in the webhook later
           },
-          // success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
-          // cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
-          redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?status=success`
+          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
+          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
+          // redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?status=success`
         }),
       });
 
@@ -77,7 +77,8 @@ export async function POST(req: NextRequest) {
       }
 
       // 3. Return the specific URL Whop generated for this user
-      return NextResponse.json({ checkoutUrl: session.purchase_url });
+      // session.purchase_url
+      return NextResponse.json({ checkoutUrl: session.checkout_url });
     }
     
     // if (provider === "whop") {

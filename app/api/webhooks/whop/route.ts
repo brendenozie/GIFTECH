@@ -3,36 +3,58 @@ import { getDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { PLANS } from "@/lib/plans";
 
-const SUCCESS_EVENTS = [
+// const SUCCESS_EVENTS = [
+//   "membership.went_active",
+//   "membership.activated",
+//   "payment.succeeded",
+//   "payment.completed",
+//   "subscription.activated",
+//   "subscription.went_active",
+//   "subscription.completed",
+//   "order.completed",
+//   "order.paid",
+//   "subscription.renewed",
+//   "subscription.reactivated",
+//   "membership.reactivated",
+//   "payment.processed",
+//   "order.processed",
+//   "membership.completed",
+//   "subscription.processed",
+//   "order.activated",
+//   "payment.activated",
+//   "membership.paid",
+//   "subscription.paid",
+//   "payment.paid",
+//   "order.succeeded",
+//   "payment.went_active",
+//   "subscription.completed",
+//   "membership.processed",
+//   "order.went_active",
+//   "payment.completed",
+//   "membership.activated",
+// ];
+
+const SUCCESS_EVENTS = new Set([
   "membership.went_active",
   "membership.activated",
-  "payment.succeeded",
-  "payment.completed",
-  "subscription.activated",
+  "membership.reactivated",
+
   "subscription.went_active",
+  "subscription.activated",
   "subscription.completed",
-  "order.completed",
-  "order.paid",
   "subscription.renewed",
   "subscription.reactivated",
-  "membership.reactivated",
-  "payment.processed",
-  "order.processed",
-  "membership.completed",
-  "subscription.processed",
-  "order.activated",
-  "payment.activated",
-  "membership.paid",
-  "subscription.paid",
-  "payment.paid",
-  "order.succeeded",
-  "payment.went_active",
-  "subscription.completed",
-  "membership.processed",
-  "order.went_active",
+
+  "payment.succeeded",
   "payment.completed",
-  "membership.activated",
-];
+  "payment.paid",
+  "payment.processed",
+
+  "order.completed",
+  "order.paid",
+  "order.succeeded",
+]);
+
 
 export async function POST(req: NextRequest) {
   const db = await getDatabase();
@@ -44,7 +66,10 @@ export async function POST(req: NextRequest) {
 
   try {
     body = await req.json();
+
     event = body?.event ?? "unknown";
+    event = String(event || "unknown").toLowerCase();
+
     reference = body?.data?.custom_id;
 
     /* ------------------------------------
@@ -62,14 +87,27 @@ export async function POST(req: NextRequest) {
     /* ------------------------------------
        2️⃣ Ignore non-success events
     ------------------------------------ */
-    if (!SUCCESS_EVENTS.includes(event)) {
-      await db.collection("whop_webhook_attempts").updateOne(
-        { _id: attemptId.insertedId },
-        { $set: { processed: false, ignored: true } }
-      );
+    if (!SUCCESS_EVENTS.has(event)) {
+        await db.collection("whop_webhook_attempts").updateOne(
+          { _id: attemptId.insertedId },
+          {
+            $set: {
+              processed: true,
+              ignored: true,
+              ignoreReason: "Non-success event",
+              event,
+              processedAt: new Date(),
+            },
+          }
+        );
 
-      return NextResponse.json({ ignored: true }, { status: 200 });
+        return NextResponse.json(
+          { ignored: true, event },
+          { status: 200 }
+        );
     }
+
+    
 
     if (!reference) {
       throw new Error("Missing data.custom_id");
