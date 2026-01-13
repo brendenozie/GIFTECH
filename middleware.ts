@@ -3,6 +3,10 @@ import type { NextRequest } from 'next/server';
 
 
 export function middleware(request: NextRequest) {
+   if (request.nextUrl.pathname.startsWith('/api/webhooks/whop')) {
+    return NextResponse.next();
+  }
+
   const { pathname } = request.nextUrl;
 
 
@@ -33,9 +37,9 @@ export function middleware(request: NextRequest) {
     '/verify-email',
   ];
 
-  if (request.nextUrl.pathname.startsWith('/api/whop')) {
-    return NextResponse.next();
-  }
+  // if (request.nextUrl.pathname.startsWith('/api/whop')) {
+  //   return NextResponse.next();
+  // }
 
   // Check if the current path is a protected route
   // const isProtectedRoute = protectedRoutes.some(route => 
