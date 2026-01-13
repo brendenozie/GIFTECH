@@ -11,7 +11,6 @@ export default function PartnerDrillDown() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  const totalPartnerRevenue = data.referrals.reduce((acc: number, curr: any) => acc + curr.commissionGenerated, 0);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,6 +32,9 @@ export default function PartnerDrillDown() {
 
   if (loading) return <div className="p-10 text-zinc-500">Loading connections...</div>;
 
+  
+  // const totalPartnerRevenue = data.referrals?.reduce((acc: number, curr: any) => acc + curr.commissionGenerated, 0);
+
   return (
     <div className="min-h-screen bg-[#09090b] text-white p-6 md:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
@@ -47,8 +49,8 @@ export default function PartnerDrillDown() {
 
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-zinc-900/50 p-6 rounded-2xl border border-zinc-800">
           <div>
-            <h1 className="text-2xl font-bold">{data.partner.email}</h1>
-            <p className="text-indigo-400 font-mono text-sm">Code: {data.partner.referralCode}</p>
+            <h1 className="text-2xl font-bold">{data.partner?.email}</h1>
+            <p className="text-indigo-400 font-mono text-sm">Code: {data.partner?.referralCode}</p>
           </div>
           <div className="text-right">
             <p className="text-zinc-500 text-xs uppercase tracking-widest">Total Referred</p>
