@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Users, ExternalLink, ShieldCheck, Search } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
 type Partner = {
@@ -17,6 +18,7 @@ export default function AdminPartnerView() {
   const [partners, setPartners] = useState<Partner[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     fetchAdminData();
@@ -91,7 +93,9 @@ export default function AdminPartnerView() {
                   <td className="px-6 py-4 font-mono text-xs text-zinc-400">{p.referralCode}</td>
                   <td className="px-6 py-4 text-center font-bold text-lg">{p.totalReferrals}</td>
                   <td className="px-6 py-4 text-right">
-                    <button className="p-2 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400">
+                    <button className="p-2 hover:bg-zinc-700 rounded-lg transition-colors text-zinc-400"
+                      onClick={() => router.push(`/admin/partner-dashbaord/${p._id}`)}
+                    >
                       <ExternalLink className="w-4 h-4" />
                     </button>
                   </td>
