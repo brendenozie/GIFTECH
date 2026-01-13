@@ -3,58 +3,33 @@ import { getDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { PLANS } from "@/lib/plans";
 
-// const SUCCESS_EVENTS = [
-//   "membership.went_active",
-//   "membership.activated",
-//   "payment.succeeded",
-//   "payment.completed",
-//   "subscription.activated",
-//   "subscription.went_active",
-//   "subscription.completed",
-//   "order.completed",
-//   "order.paid",
-//   "subscription.renewed",
-//   "subscription.reactivated",
-//   "membership.reactivated",
-//   "payment.processed",
-//   "order.processed",
-//   "membership.completed",
-//   "subscription.processed",
-//   "order.activated",
-//   "payment.activated",
-//   "membership.paid",
-//   "subscription.paid",
-//   "payment.paid",
-//   "order.succeeded",
-//   "payment.went_active",
-//   "subscription.completed",
-//   "membership.processed",
-//   "order.went_active",
-//   "payment.completed",
-//   "membership.activated",
-// ];
-
+/* ------------------------------------
+   SUCCESS EVENTS (normalized lowercase)
+------------------------------------ */
 const SUCCESS_EVENTS = new Set([
+  // Membership
   "membership.went_active",
   "membership.activated",
   "membership.reactivated",
 
+  // Subscription
   "subscription.went_active",
   "subscription.activated",
   "subscription.completed",
   "subscription.renewed",
   "subscription.reactivated",
 
+  // Payment
   "payment.succeeded",
   "payment.completed",
   "payment.paid",
   "payment.processed",
 
+  // Order
   "order.completed",
   "order.paid",
   "order.succeeded",
 ]);
-
 
 export async function POST(req: NextRequest) {
   const db = await getDatabase();
@@ -65,56 +40,62 @@ export async function POST(req: NextRequest) {
   let reference: string | undefined;
 
   try {
+    /* ------------------------------------
+       1️⃣ Parse webhook body
+    ------------------------------------ */
     body = await req.json();
 
-    event = body?.event ?? "unknown";
-    event = String(event || "unknown").toLowerCase();
+    // Whop v2 uses `action`, fallback to legacy `event`
+    const rawEvent = body?.action || body?.event || "unknown";
+    event = String(rawEvent).toLowerCase();
 
-    reference = body?.data?.custom_id;
+    // Extract internal reference (custom_id)
+    reference =
+      body?.data?.membership_metadata?.custom_id ||
+      body?.data?.membership?.metadata?.custom_id ||
+      body?.data?.metadata?.custom_id;
 
     /* ------------------------------------
-       1️⃣ Log webhook attempt FIRST
+       2️⃣ Log webhook attempt FIRST (always)
     ------------------------------------ */
-    const attemptId = await db.collection("whop_webhook_attempts").insertOne({
-      event,
-      reference,
-      payload: body,
-      headers: Object.fromEntries(req.headers.entries()),
-      processed: false,
-      createdAt: receivedAt,
-    });
+    const { insertedId: attemptId } =
+      await db.collection("whop_webhook_attempts").insertOne({
+        event,
+        reference,
+        payload: body,
+        headers: Object.fromEntries(req.headers.entries()),
+        processed: false,
+        createdAt: receivedAt,
+      });
 
     /* ------------------------------------
-       2️⃣ Ignore non-success events
+       3️⃣ Ignore non-success events
     ------------------------------------ */
     if (!SUCCESS_EVENTS.has(event)) {
-        await db.collection("whop_webhook_attempts").updateOne(
-          { _id: attemptId.insertedId },
-          {
-            $set: {
-              processed: true,
-              ignored: true,
-              ignoreReason: "Non-success event",
-              event,
-              processedAt: new Date(),
-            },
-          }
-        );
+      await db.collection("whop_webhook_attempts").updateOne(
+        { _id: attemptId },
+        {
+          $set: {
+            processed: true,
+            ignored: true,
+            ignoreReason: "Non-success event",
+            processedAt: new Date(),
+          },
+        }
+      );
 
-        return NextResponse.json(
-          { ignored: true, event },
-          { status: 200 }
-        );
-    }
-
-    
-
-    if (!reference) {
-      throw new Error("Missing data.custom_id");
+      return NextResponse.json({ ignored: true, event }, { status: 200 });
     }
 
     /* ------------------------------------
-       3️⃣ Find payment intent
+       4️⃣ Validate reference
+    ------------------------------------ */
+    if (!reference) {
+      throw new Error("Missing custom_id reference");
+    }
+
+    /* ------------------------------------
+       5️⃣ Locate payment intent (idempotent)
     ------------------------------------ */
     const intent = await db.collection("payment_intents").findOne({
       reference,
@@ -122,27 +103,34 @@ export async function POST(req: NextRequest) {
     });
 
     if (!intent) {
-      // Idempotent exit (already processed or invalid)
       await db.collection("whop_webhook_attempts").updateOne(
-        { _id: attemptId.insertedId },
-        { $set: { processed: true, note: "Intent not found or already handled" } }
+        { _id: attemptId },
+        {
+          $set: {
+            processed: true,
+            note: "Intent not found or already processed",
+            processedAt: new Date(),
+          },
+        }
       );
 
       return NextResponse.json({ ok: true }, { status: 200 });
     }
 
-    const plan = PLANS.find(p => p.id === intent.planId);
+    /* ------------------------------------
+       6️⃣ Resolve plan
+    ------------------------------------ */
+    const plan = PLANS.find((p) => p.id === intent.planId);
     if (!plan) {
       throw new Error("Invalid plan configuration");
     }
 
-    /* ------------------------------------
-       4️⃣ Mirror admin approve logic
-    ------------------------------------ */
     const durationDays = plan.duration;
     const userId = intent.userId;
 
-    // Reject other intents
+    /* ------------------------------------
+       7️⃣ Decline other pending intents
+    ------------------------------------ */
     await db.collection("payment_intents").updateMany(
       {
         userId,
@@ -157,7 +145,9 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Approve intent
+    /* ------------------------------------
+       8️⃣ Approve this intent
+    ------------------------------------ */
     await db.collection("payment_intents").updateOne(
       { _id: intent._id },
       {
@@ -168,7 +158,9 @@ export async function POST(req: NextRequest) {
       }
     );
 
-    // Subscription stacking
+    /* ------------------------------------
+       9️⃣ Subscription stacking logic
+    ------------------------------------ */
     const existingSub = await db.collection("subscriptions").findOne({
       userId,
       status: "active",
@@ -198,6 +190,9 @@ export async function POST(req: NextRequest) {
       { upsert: true }
     );
 
+    /* ------------------------------------
+       🔟 Update user record
+    ------------------------------------ */
     await db.collection("users").updateOne(
       { _id: new ObjectId(userId) },
       {
@@ -210,22 +205,22 @@ export async function POST(req: NextRequest) {
     );
 
     /* ------------------------------------
-       5️⃣ Mark webhook as processed
+       1️⃣1️⃣ Mark webhook processed
     ------------------------------------ */
     await db.collection("whop_webhook_attempts").updateOne(
-      { _id: attemptId.insertedId },
-      { $set: { processed: true, processedAt: new Date() } }
+      { _id: attemptId },
+      {
+        $set: {
+          processed: true,
+          processedAt: new Date(),
+        },
+      }
     );
-
-    // console.log(`✅ Whop webhook processed for user ${userId}`);
 
     return NextResponse.json({ success: true }, { status: 200 });
   } catch (error: any) {
     console.error("Whop Webhook Error:", error);
 
-    /* ------------------------------------
-       6️⃣ Store failure reason
-    ------------------------------------ */
     await db.collection("whop_webhook_attempts").insertOne({
       event,
       reference,
@@ -238,6 +233,247 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
   }
 }
+
+// import { NextRequest, NextResponse } from "next/server";
+// import { getDatabase } from "@/lib/mongodb";
+// import { ObjectId } from "mongodb";
+// import { PLANS } from "@/lib/plans";
+
+// // const SUCCESS_EVENTS = [
+// //   "membership.went_active",
+// //   "membership.activated",
+// //   "payment.succeeded",
+// //   "payment.completed",
+// //   "subscription.activated",
+// //   "subscription.went_active",
+// //   "subscription.completed",
+// //   "order.completed",
+// //   "order.paid",
+// //   "subscription.renewed",
+// //   "subscription.reactivated",
+// //   "membership.reactivated",
+// //   "payment.processed",
+// //   "order.processed",
+// //   "membership.completed",
+// //   "subscription.processed",
+// //   "order.activated",
+// //   "payment.activated",
+// //   "membership.paid",
+// //   "subscription.paid",
+// //   "payment.paid",
+// //   "order.succeeded",
+// //   "payment.went_active",
+// //   "subscription.completed",
+// //   "membership.processed",
+// //   "order.went_active",
+// //   "payment.completed",
+// //   "membership.activated",
+// // ];
+
+// const SUCCESS_EVENTS = new Set([
+//   "membership.went_active",
+//   "membership.activated",
+//   "membership.reactivated",
+
+//   "subscription.went_active",
+//   "subscription.activated",
+//   "subscription.completed",
+//   "subscription.renewed",
+//   "subscription.reactivated",
+
+//   "payment.succeeded",
+//   "payment.completed",
+//   "payment.paid",
+//   "payment.processed",
+
+//   "order.completed",
+//   "order.paid",
+//   "order.succeeded",
+// ]);
+
+
+// export async function POST(req: NextRequest) {
+//   const db = await getDatabase();
+//   const receivedAt = new Date();
+
+//   let body: any = null;
+//   let event = "unknown";
+//   let reference: string | undefined;
+
+//   try {
+//     body = await req.json();
+
+//     event = body?.event ?? "unknown";
+//     event = String(event || "unknown").toLowerCase();
+
+//     reference = body?.data?.custom_id;
+
+//     /* ------------------------------------
+//        1️⃣ Log webhook attempt FIRST
+//     ------------------------------------ */
+//     const attemptId = await db.collection("whop_webhook_attempts").insertOne({
+//       event,
+//       reference,
+//       payload: body,
+//       headers: Object.fromEntries(req.headers.entries()),
+//       processed: false,
+//       createdAt: receivedAt,
+//     });
+
+//     /* ------------------------------------
+//        2️⃣ Ignore non-success events
+//     ------------------------------------ */
+//     if (!SUCCESS_EVENTS.has(event)) {
+//         await db.collection("whop_webhook_attempts").updateOne(
+//           { _id: attemptId.insertedId },
+//           {
+//             $set: {
+//               processed: true,
+//               ignored: true,
+//               ignoreReason: "Non-success event",
+//               event,
+//               processedAt: new Date(),
+//             },
+//           }
+//         );
+
+//         return NextResponse.json(
+//           { ignored: true, event },
+//           { status: 200 }
+//         );
+//     }
+
+    
+
+//     if (!reference) {
+//       throw new Error("Missing data.custom_id");
+//     }
+
+//     /* ------------------------------------
+//        3️⃣ Find payment intent
+//     ------------------------------------ */
+//     const intent = await db.collection("payment_intents").findOne({
+//       reference,
+//       status: { $in: ["pending", "initiated"] },
+//     });
+
+//     if (!intent) {
+//       // Idempotent exit (already processed or invalid)
+//       await db.collection("whop_webhook_attempts").updateOne(
+//         { _id: attemptId.insertedId },
+//         { $set: { processed: true, note: "Intent not found or already handled" } }
+//       );
+
+//       return NextResponse.json({ ok: true }, { status: 200 });
+//     }
+
+//     const plan = PLANS.find(p => p.id === intent.planId);
+//     if (!plan) {
+//       throw new Error("Invalid plan configuration");
+//     }
+
+//     /* ------------------------------------
+//        4️⃣ Mirror admin approve logic
+//     ------------------------------------ */
+//     const durationDays = plan.duration;
+//     const userId = intent.userId;
+
+//     // Reject other intents
+//     await db.collection("payment_intents").updateMany(
+//       {
+//         userId,
+//         _id: { $ne: intent._id },
+//         status: { $ne: "success" },
+//       },
+//       {
+//         $set: {
+//           status: "declined",
+//           processedAt: new Date(),
+//         },
+//       }
+//     );
+
+//     // Approve intent
+//     await db.collection("payment_intents").updateOne(
+//       { _id: intent._id },
+//       {
+//         $set: {
+//           status: "success",
+//           processedAt: new Date(),
+//         },
+//       }
+//     );
+
+//     // Subscription stacking
+//     const existingSub = await db.collection("subscriptions").findOne({
+//       userId,
+//       status: "active",
+//     });
+
+//     let startDate = new Date();
+//     if (existingSub && existingSub.endDate > startDate) {
+//       startDate = new Date(existingSub.endDate);
+//     }
+
+//     const endDate = new Date(startDate);
+//     endDate.setDate(endDate.getDate() + durationDays);
+
+//     await db.collection("subscriptions").updateOne(
+//       { userId },
+//       {
+//         $set: {
+//           userId,
+//           planId: intent.planId,
+//           amount: intent.amount,
+//           status: "active",
+//           startDate,
+//           endDate,
+//           updatedAt: new Date(),
+//         },
+//       },
+//       { upsert: true }
+//     );
+
+//     await db.collection("users").updateOne(
+//       { _id: new ObjectId(userId) },
+//       {
+//         $set: {
+//           subscriptionStatus: "active",
+//           subscriptionType: intent.planId,
+//           subscriptionEndDate: endDate,
+//         },
+//       }
+//     );
+
+//     /* ------------------------------------
+//        5️⃣ Mark webhook as processed
+//     ------------------------------------ */
+//     await db.collection("whop_webhook_attempts").updateOne(
+//       { _id: attemptId.insertedId },
+//       { $set: { processed: true, processedAt: new Date() } }
+//     );
+
+//     // console.log(`✅ Whop webhook processed for user ${userId}`);
+
+//     return NextResponse.json({ success: true }, { status: 200 });
+//   } catch (error: any) {
+//     console.error("Whop Webhook Error:", error);
+
+//     /* ------------------------------------
+//        6️⃣ Store failure reason
+//     ------------------------------------ */
+//     await db.collection("whop_webhook_attempts").insertOne({
+//       event,
+//       reference,
+//       payload: body,
+//       error: error.message,
+//       processed: false,
+//       failedAt: new Date(),
+//     });
+
+//     return NextResponse.json({ error: "Webhook failed" }, { status: 500 });
+//   }
+// }
 
 // import { NextRequest, NextResponse } from "next/server";
 // import { getDatabase } from "@/lib/mongodb";
