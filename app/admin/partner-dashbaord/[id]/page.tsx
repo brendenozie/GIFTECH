@@ -105,46 +105,10 @@ export default function PartnerDrillDown() {
                         </div>
                       </div>
                     </div>
-                // <div 
-                //   key={user._id} 
-                //   className="flex items-center justify-between p-4 bg-zinc-900/30 border border-zinc-800 rounded-xl hover:border-zinc-700 transition-all"
-                // >
-                //   <div className="flex items-center gap-4">
-                //     <div className="w-10 h-10 rounded-full bg-zinc-800 flex items-center justify-center">
-                //       <Mail className="w-4 h-4 text-zinc-400" />
-                //     </div>
-                //     <div>
-                //       <p className="font-medium text-sm">{user.email}</p>
-                //       <div className="flex items-center gap-3 text-[10px] text-zinc-500 mt-1">
-                //         <span className="flex items-center gap-1">
-                //           <Calendar className="w-3 h-3" /> 
-                //           Joined {new Date(user.createdAt).toLocaleDateString()}
-                //         </span>
-                //         <span className="flex items-center gap-1">
-                //           <Clock className="w-3 h-3" /> 
-                //           ID: {user._id.substring(0, 8)}...
-                //         </span>
-                //       </div>
-                //     </div>
-                //   </div>
-
-                //   {/* Optional: Check if user is active/paid */}
-                //   <div>
-                //     {user.hasPaid ? (
-                //       <span className="flex items-center gap-1 text-emerald-400 text-xs font-medium bg-emerald-400/10 px-2 py-1 rounded-full">
-                //         <CheckCircle2 className="w-3 h-3" /> Active Payer
-                //       </span>
-                //     ) : (
-                //       <span className="text-zinc-600 text-xs px-2 py-1 bg-zinc-800/50 rounded-full">
-                //         Free User
-                //       </span>
-                //     )}
-                //   </div>
-                // </div>
               ))
             ) : (
               <div className="text-center py-20 bg-zinc-900/20 rounded-2xl border border-dashed border-zinc-800">
-                <p className="text-zinc-500 text-sm">This partner hasn't referred anyone yet.</p>
+                <p className="text-zinc-500 text-sm">This partner hasn&apos;t referred anyone yet.</p>
               </div>
             )}
           </div>
