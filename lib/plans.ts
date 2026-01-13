@@ -71,7 +71,7 @@ export const PLANS = [
     popular: true,
   },
   {
-    id: "3months",
+    id: "quarterly",
     name: "Quarterly",
     price: "USD 129",
     priceKES: "KES 14999",
