@@ -136,7 +136,8 @@ export default function PartnerDrillDown() {
                     {user.email.substring(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="font-semibold text-zinc-200">{user.email}</p>
+                    {/* show only a small amount of the email */}
+                    <p className="font-semibold text-zinc-200">{user.email.slice(0, 12)}...</p>
                     <div className="flex items-center gap-3 mt-1">
                         <span className="flex items-center gap-1 text-[10px] text-zinc-500 italic">
                             Joined {new Date(user.createdAt).toLocaleDateString()}
