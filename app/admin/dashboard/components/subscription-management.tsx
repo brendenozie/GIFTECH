@@ -415,6 +415,8 @@ useEffect(() => {
                         </div>
                         <div>
                           <div className="font-bold text-slate-900 text-sm">{sub.userName}</div>
+                          <div className="flex items-center gap-1">{sub.phoneNumber}</div>
+                          <div className="flex items-center gap-1">{sub.tradingviewUsername}</div>
                           <div className="text-[10px] text-indigo-600 font-bold uppercase">{sub.plan}</div>
                         </div>
                       </div>

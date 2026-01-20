@@ -44,7 +44,8 @@ export async function GET(req: Request) {
         $facet: {
           metadata: [{ $count: "total" }],
           data: [
-            { $sort: { startDate: -1 } },
+            // { $sort: { startDate: -1 } },
+            { $sort: { startDate: -1, _id: -1 } },
             { $skip: skip },
             { $limit: limit },
             {
@@ -62,7 +63,8 @@ export async function GET(req: Request) {
                     { $ifNull: ["$userDetails.lastName", "User"] }
                   ] 
                 },
-                tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]}
+                tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]},
+                phoneNumber: { $ifNull: ["$userDetails.phoneNumber", "N/A"]}
               }
             }
           ],
@@ -100,97 +102,97 @@ export async function GET(req: Request) {
   }
 }
 
-export async function GETV1(req: Request) {
-  try {
-    const db = await getDatabase();
-    const { searchParams } = new URL(req.url);
+// export async function GETV1(req: Request) {
+//   try {
+//     const db = await getDatabase();
+//     const { searchParams } = new URL(req.url);
     
-    const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
-    const search = searchParams.get("search") || "";
-    const skip = (page - 1) * limit;
+//     const page = parseInt(searchParams.get("page") || "1");
+//     const limit = parseInt(searchParams.get("limit") || "10");
+//     const search = searchParams.get("search") || "";
+//     const skip = (page - 1) * limit;
 
-    // 1. Build the Match stage for searching
-    const matchStage = search ? {
-      $or: [
-        { "userDetails.firstName": { $regex: search, $options: "i" } },
-        { "userDetails.lastName": { $regex: search, $options: "i" } },
-        { "userDetails.email": { $regex: search, $options: "i" } },
-        { planId: { $regex: search, $options: "i" } }
-      ]
-    } : {};
+//     // 1. Build the Match stage for searching
+//     const matchStage = search ? {
+//       $or: [
+//         { "userDetails.firstName": { $regex: search, $options: "i" } },
+//         { "userDetails.lastName": { $regex: search, $options: "i" } },
+//         { "userDetails.email": { $regex: search, $options: "i" } },
+//         { planId: { $regex: search, $options: "i" } }
+//       ]
+//     } : {};
 
-    // 2. The Aggregate Pipeline
-    const pipeline = [
-      // Step A: Convert userId string to ObjectId if necessary
-      {
-        $addFields: {
-          convertedUserId: { $toObjectId: "$userId" }
-        }
-      },
-      // Step B: Lookup User
-      {
-        $lookup: {
-          from: "users",
-          localField: "convertedUserId", // Match the converted field
-          foreignField: "_id",
-          as: "userDetails"
-        }
-      },
-      // Step C: Safe Unwind (keeps subscription even if user is missing)
-      { $unwind: { path: "$userDetails", preserveNullAndEmptyArrays: true } },
+//     // 2. The Aggregate Pipeline
+//     const pipeline = [
+//       // Step A: Convert userId string to ObjectId if necessary
+//       {
+//         $addFields: {
+//           convertedUserId: { $toObjectId: "$userId" }
+//         }
+//       },
+//       // Step B: Lookup User
+//       {
+//         $lookup: {
+//           from: "users",
+//           localField: "convertedUserId", // Match the converted field
+//           foreignField: "_id",
+//           as: "userDetails"
+//         }
+//       },
+//       // Step C: Safe Unwind (keeps subscription even if user is missing)
+//       { $unwind: { path: "$userDetails", preserveNullAndEmptyArrays: true } },
       
-      // Step D: Apply the Search Filter
-      { $match: matchStage },
+//       // Step D: Apply the Search Filter
+//       { $match: matchStage },
 
-      // Step E: Get Total Count and Data in one go using $facet
-      {
-        $facet: {
-          metadata: [{ $count: "total" }],
-          data: [
-            { $sort: { startDate: -1 } },
-            { $skip: skip },
-            { $limit: limit },
-            {
-              $project: {
-                _id: 1,
-                plan: "$planId",
-                price: "$amount",
-                status: 1,
-                startDate: 1,
-                endDate: 1,
-                userName: { 
-                  $concat: [
-                    { $ifNull: ["$userDetails.firstName", "Guest"] }, 
-                    " ", 
-                    { $ifNull: ["$userDetails.lastName", "User"] }
-                  ] 
-                },
-                tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]}
-              }
-            }
-          ]
-        }
-      }
-    ];
+//       // Step E: Get Total Count and Data in one go using $facet
+//       {
+//         $facet: {
+//           metadata: [{ $count: "total" }],
+//           data: [
+//             { $sort: { startDate: -1 } },
+//             { $skip: skip },
+//             { $limit: limit },
+//             {
+//               $project: {
+//                 _id: 1,
+//                 plan: "$planId",
+//                 price: "$amount",
+//                 status: 1,
+//                 startDate: 1,
+//                 endDate: 1,
+//                 userName: { 
+//                   $concat: [
+//                     { $ifNull: ["$userDetails.firstName", "Guest"] }, 
+//                     " ", 
+//                     { $ifNull: ["$userDetails.lastName", "User"] }
+//                   ] 
+//                 },
+//                 tradingviewUsername: { $ifNull: ["$userDetails.tradingviewUsername", "N/A"]}
+//               }
+//             }
+//           ]
+//         }
+//       }
+//     ];
 
-    const result = await db.collection("subscriptions").aggregate(pipeline).toArray();
+//     const result = await db.collection("subscriptions").aggregate(pipeline).toArray();
     
-    const subscriptions = result[0].data;
-    const totalCount = result[0].metadata[0]?.total || 0;
-    const totalPages = Math.ceil(totalCount / limit);
+//     const subscriptions = result[0].data;
+//     const totalCount = result[0].metadata[0]?.total || 0;
+//     const totalPages = Math.ceil(totalCount / limit);
 
-    return NextResponse.json({ 
-      subscriptions, 
-      totalPages,
-      totalCount 
-    });
+//     return NextResponse.json({ 
+//       subscriptions, 
+//       totalPages,
+//       totalCount 
+//     });
 
-  } catch (error) {
-    console.error("Sub API Error:", error);
-    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
-  }
-}
+//   } catch (error) {
+//     console.error("Sub API Error:", error);
+//     return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+//   }
+// }
 // import { verifyToken } from '@/lib/auth';
 // import { getDatabase } from '@/lib/mongodb';
 // import { NextResponse } from 'next/server';
