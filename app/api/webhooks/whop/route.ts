@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getDatabase } from "@/lib/mongodb";
 import { ObjectId } from "mongodb";
 import { PLANS } from "@/lib/plans";
-import { grantTradingViewAccess } from "@/lib/tradingview-private";
+// import { grantTradingViewAccess } from "@/lib/tradingview-private";
 
 // import { grantTradingViewAccess } from "@/lib/tradingview-service";
 
@@ -224,38 +224,38 @@ export async function POST(req: NextRequest) {
     /* ------------------------------------
       🔟.5️⃣ Grant TradingView access
     ------------------------------------ */
-    const user = await db.collection("users").findOne({
-      _id: new ObjectId(userId),
-    });
+    // const user = await db.collection("users").findOne({
+    //   _id: new ObjectId(userId),
+    // });
 
-      if (user?.tradingviewUsername && user.tradingviewAccess !== "granted") {
-        try {
+    //   if (user?.tradingviewUsername && user.tradingviewAccess !== "granted") {
+    //     try {
           
-          await grantTradingViewAccess(user.tradingviewUsername);
+    //       await grantTradingViewAccess(user.tradingviewUsername);
           
-          await db.collection("users").updateOne(
-            { _id: new ObjectId(userId) },
-            {
-              $set: {
-                tradingviewAccess: "granted",
-                tradingviewGrantedAt: new Date(),
-              },
-            }
-          );
-        } catch (tvError: any) {
-          console.error("TradingView Grant Failed:", tvError);
+    //       await db.collection("users").updateOne(
+    //         { _id: new ObjectId(userId) },
+    //         {
+    //           $set: {
+    //             tradingviewAccess: "granted",
+    //             tradingviewGrantedAt: new Date(),
+    //           },
+    //         }
+    //       );
+    //     } catch (tvError: any) {
+    //       console.error("TradingView Grant Failed:", tvError);
 
-          await db.collection("users").updateOne(
-            { _id: new ObjectId(userId) },
-            {
-              $set: {
-                tradingviewAccess: "failed",
-                tradingviewError: tvError.message,
-              },
-            }
-          );
-        }
-      }
+    //       await db.collection("users").updateOne(
+    //         { _id: new ObjectId(userId) },
+    //         {
+    //           $set: {
+    //             tradingviewAccess: "failed",
+    //             tradingviewError: tvError.message,
+    //           },
+    //         }
+    //       );
+    //     }
+    //   }
 
 
     return NextResponse.json({ success: true }, { status: 200 });

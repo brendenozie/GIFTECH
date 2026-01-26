@@ -1,18 +1,55 @@
 // lib/tradingview-private.ts
+
 let cachedSession: {
   cookies: string;
   csrf: string;
   expires: number;
 } | null = null;
 
+function parseCookies(headers: Headers) {
+  const raw = headers.get("set-cookie");
+  if (!raw) return "";
+  return raw
+    .split(",")
+    .map((c) => c.split(";")[0])
+    .join("; ");
+}
+
 async function loginTradingView() {
-  const res = await fetch("https://www.tradingview.com/accounts/signin/", {
+  // 1️⃣ Initial visit
+  const initRes = await fetch("https://www.tradingview.com/", {
+    method: "GET",
+    headers: {
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+    },
+  });
+
+  const initHtml = await initRes.text();
+  const initCookies = parseCookies(initRes.headers);
+
+  // ✅ Extract CSRF from HTML
+  const csrfMatch =
+    initHtml.match(/name="csrf-token"\s+content="([^"]+)"/) ||
+    initHtml.match(/csrf-token" content="([^"]+)"/);
+
+  if (!csrfMatch) {
+    throw new Error("Failed to extract CSRF token from TradingView HTML");
+  }
+
+  const csrf = csrfMatch[1];
+
+  // 2️⃣ Login
+  const loginRes = await fetch("https://www.tradingview.com/accounts/signin/", {
     method: "POST",
     headers: {
       "content-type": "application/x-www-form-urlencoded",
       origin: "https://www.tradingview.com",
       referer: "https://www.tradingview.com/",
-      "user-agent": "Mozilla/5.0",
+      cookie: initCookies,
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
+      "x-csrf-token": csrf,
     },
     body: new URLSearchParams({
       username: process.env.TV_USER!,
@@ -22,14 +59,12 @@ async function loginTradingView() {
     redirect: "manual",
   });
 
-  const cookies = res.headers.get("set-cookie") || "";
-  const csrfMatch = cookies.match(/csrf_token=([^;]+)/);
-
-  if (!csrfMatch) throw new Error("No CSRF token");
+  const loginCookies = parseCookies(loginRes.headers);
+  const mergedCookies = [initCookies, loginCookies].filter(Boolean).join("; ");
 
   cachedSession = {
-    cookies,
-    csrf: csrfMatch[1],
+    cookies: mergedCookies,
+    csrf,
     expires: Date.now() + 1000 * 60 * 20,
   };
 
@@ -53,7 +88,8 @@ export async function grantTradingViewAccess(username: string) {
       "x-csrf-token": session.csrf,
       "content-type": "application/json",
       referer: "https://www.tradingview.com/",
-      "user-agent": "Mozilla/5.0",
+      "user-agent":
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120",
     },
     body: JSON.stringify({
       username,
@@ -61,8 +97,12 @@ export async function grantTradingViewAccess(username: string) {
     }),
   });
 
+  const text = await res.text();
+
   if (!res.ok) {
-    const txt = await res.text();
-    throw new Error(txt);
+    console.error("TradingView Response:", text);
+    throw new Error(text);
   }
+
+  return text;
 }
