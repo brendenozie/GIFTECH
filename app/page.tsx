@@ -147,15 +147,15 @@ export default function HomePage() {
             variant="outline"
           >
             <Zap className="w-3 h-3 mr-1" />
-            Precise powered Trading Signals
+            Join thousands of successful traders using our proprietary algorithm.
           </Badge>
           <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
             Ready <span className="text-green-400">Pips</span>
           </h1>
           <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-            Get real-time. Smart trading signals. Proven accuracy up to 93%.{" "}
+            Historically consistent results.{" "}
             <br />
-            Join thousands of successful traders using our proprietary algorithm.
+            Historically consistent results.
           </p>
 
           {/* Conditional CTA Buttons */}
