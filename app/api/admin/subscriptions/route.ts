@@ -86,6 +86,7 @@ export async function GET(req: Request) {
                 status: 1,
                 startDate: 1,
                 endDate: 1,
+                updatedDate: "$updatedAt",
                 userName: { 
                   $concat: [
                     { $ifNull: ["$userDetails.firstName", "Guest"] }, 
