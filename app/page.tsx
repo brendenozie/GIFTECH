@@ -153,9 +153,9 @@ export default function HomePage() {
             Ready <span className="text-green-400">Pips</span>
           </h1>
           <p className="text-xl text-gray-100 mb-8 max-w-2xl mx-auto leading-relaxed">
-            {/* Join thousands of successful traders using our proprietary algorithm.{" "} */}
+            Historically consistent results.{" "}
             <br />
-            Historically consistent results.
+            Join thousands of successful traders using our proprietary algorithm.
           </p>
 
           {/* Conditional CTA Buttons */}
