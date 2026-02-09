@@ -7,7 +7,7 @@ import { ObjectId } from "mongodb";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
-export type UserRole = "user" | "affiliate" | "partner";
+export type UserRole = "user" | "affiliate" | "partner" | "student" | "mentor" | "admin";
 
 export interface AffiliateProfile {
   referralCode: string;

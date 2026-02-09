@@ -4,7 +4,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useSession, signOut } from 'next-auth/react';
 
 
-export type UserRole = "user" | "affiliate" | "partner" | "admin";
+export type UserRole = "user" | "affiliate" | "partner" | "admin" | "student" | "mentor";
 
 export interface AffiliateProfile {
   referralCode: string;

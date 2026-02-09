@@ -9,6 +9,8 @@ export enum AdminRole {
   SUPER_ADMIN = "super_admin",
   ADMIN = "admin",
   MODERATOR = "moderator",
+  STUDENT = "student",
+  MENTOR = "mentor",
 }
 
 export enum AdminPermission {
@@ -91,6 +93,13 @@ export const rolePermissions: { [key in AdminRole]: AdminPermission[] } = {
     AdminPermission.EDIT_USER,
     AdminPermission.VIEW_SUBSCRIPTIONS,
     AdminPermission.VIEW_ANALYTICS,
+  ],
+  [AdminRole.STUDENT]: [
+    AdminPermission.VIEW_ANNOUNCEMENTS,
+  ],
+  [AdminRole.MENTOR]: [
+    AdminPermission.VIEW_ANNOUNCEMENTS,
+    AdminPermission.SEND_CAMPAIGNS,
   ],
 };
 
