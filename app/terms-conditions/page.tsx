@@ -1,12 +1,12 @@
 "use client";
 
-import { Navigation } from "@/components/navigation";
+import { Navbar } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 
 export default function TermsConditionsPage() {
   return (
     <>
-      <Navigation />
+      <Navbar />
       <main className="min-h-screen bg-white dark:bg-black">
         {/* Header */}
         <section className="max-w-4xl mx-auto px-4 py-16">
