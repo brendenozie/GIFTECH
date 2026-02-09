@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Navigation } from "@/components/navigation";
+import { Navbar } from "@/components/navigation";
 import { Footer } from "@/components/footer";
 import { toast } from "sonner";
 import { 
@@ -156,7 +156,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black flex flex-col">
-      <Navigation />
+      <Navbar />
 
       <div className="flex-1 container mx-auto px-4 py-8">
         {/* Page Header */}
