@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Navigation } from '@/components/navigation';
+import { Navbar } from '@/components/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Mail, Phone, MessageSquare, Clock } from 'lucide-react';
@@ -108,7 +108,7 @@ export default function SupportPage() {
 
   return (
     <div className="min-h-screen bg-white dark:bg-black">
-      <Navigation />
+      <Navbar />
 
       {/* Hero Section */}
       <section className="py-16 px-4 bg-gradient-to-r from-green-50 to-blue-50 dark:from-gray-900 dark:to-gray-800 border-b border-gray-200 dark:border-gray-800">
