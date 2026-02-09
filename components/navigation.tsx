@@ -222,7 +222,7 @@ export function Navigation() {
           <Link href="/" className="flex items-center">
             <div className="relative h-8">
               <img
-                src="/readypips_ico.png"
+                src="/giftech_ico.png"
                 alt="Ready Pips Logo"
                 className="h-8 w-auto dark:hidden"
               />

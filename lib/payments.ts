@@ -460,7 +460,7 @@ export async function initializePesapal(
       headers: {
         "Content-Type": "application/json",
         "Accept": "application/json",
-        "User-Agent": "ReadyPips/1.0",
+        "User-Agent": "giftech/1.0",
       },
       body: JSON.stringify(tokenRequest),
     });

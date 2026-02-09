@@ -66,8 +66,8 @@ export const sendEmail = async (options: EmailOptions): Promise<boolean> => {
   try {
     const transporter = getEmailTransporter();
 
-    const fromName = process.env.SMTP_FROM_NAME || "ReadyPips";
-    const fromEmail = process.env.SMTP_FROM_EMAIL || "noreply@readypips.com";
+    const fromName = process.env.SMTP_FROM_NAME || "giftech";
+    const fromEmail = process.env.SMTP_FROM_EMAIL || "noreply@giftech.com";
 
     const mailOptions = {
       from: `${fromName} <${fromEmail}>`,
@@ -147,7 +147,7 @@ export const sendAdminPasswordResetEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -219,7 +219,7 @@ export const sendUserPasswordResetEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -266,12 +266,12 @@ export const sendAdminWelcomeEmail = async (
     <body>
       <div class="container">
         <div class="header">
-          <h1>👋 Welcome to ReadyPips Admin</h1>
+          <h1>👋 Welcome to giftech Admin</h1>
         </div>
         <div class="content">
           <p>Hi <strong>${adminName}</strong>,</p>
           
-          <p>Your admin account has been successfully created! You now have access to the ReadyPips admin dashboard.</p>
+          <p>Your admin account has been successfully created! You now have access to the giftech admin dashboard.</p>
           
           <p><strong>Account Role:</strong> ${role.toUpperCase()}</p>
           
@@ -311,7 +311,7 @@ export const sendAdminWelcomeEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -323,7 +323,7 @@ export const sendAdminWelcomeEmail = async (
 
   return sendEmail({
     to: email,
-    subject: `👋 Welcome to ReadyPips Admin - Your Account is Ready`,
+    subject: `👋 Welcome to giftech Admin - Your Account is Ready`,
     html,
     type: EmailType.ADMIN_WELCOME,
   });
@@ -383,7 +383,7 @@ export const sendSubscriptionRenewedEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -395,7 +395,7 @@ export const sendSubscriptionRenewedEmail = async (
 
   return sendEmail({
     to: email,
-    subject: `✅ Your ReadyPips Subscription Renewed - ${planName}`,
+    subject: `✅ Your giftech Subscription Renewed - ${planName}`,
     html,
     type: EmailType.SUBSCRIPTION_RENEWED,
   });
@@ -458,7 +458,7 @@ export const sendSubscriptionExpiringEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -470,7 +470,7 @@ export const sendSubscriptionExpiringEmail = async (
 
   return sendEmail({
     to: email,
-    subject: `⏰ Your ReadyPips Subscription Expires in ${daysRemaining} Days`,
+    subject: `⏰ Your giftech Subscription Expires in ${daysRemaining} Days`,
     html,
     type: EmailType.SUBSCRIPTION_EXPIRING,
   });
@@ -517,7 +517,7 @@ export const sendNewToolAnnouncementEmail = async (
             <p>${toolDescription}</p>
           </div>
           
-          <p>This tool is now available for you to use in the ReadyPips dashboard. Check it out and start using it right away!</p>
+          <p>This tool is now available for you to use in the giftech dashboard. Check it out and start using it right away!</p>
           
           <center>
             <a href="${dashboardLink}" class="button">View All Tools</a>
@@ -529,7 +529,7 @@ export const sendNewToolAnnouncementEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -598,7 +598,7 @@ export const sendPaymentSuccessEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -670,12 +670,12 @@ export const sendPaymentFailedEmail = async (
           </center>
           
           <p style="color: #666; margin-top: 30px;">
-            Need help? Contact our support team at support@readypips.com
+            Need help? Contact our support team at support@giftech.com
           </p>
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>
@@ -717,7 +717,7 @@ export const sendAnnouncementEmail = async (
     <body>
       <div class="container">
         <div class="header">
-          <h1>📢 ReadyPips Announcement</h1>
+          <h1>📢 giftech Announcement</h1>
         </div>
         <div class="content">
           <p>Hi <strong>${recipientName}</strong>,</p>
@@ -728,7 +728,7 @@ export const sendAnnouncementEmail = async (
           
           <div class="footer">
             <p>
-              © 2025 ReadyPips. All rights reserved.<br>
+              © 2025 giftech. All rights reserved.<br>
               This is an automated message, please do not reply to this email.
             </p>
           </div>

@@ -4,7 +4,7 @@ import nodemailer from 'nodemailer';
 const SMTP_CONFIG = {
   host: process.env.SMTP_HOST || 'smtp.hostinger.com',
   port: Number(process.env.SMTP_PORT) || 587,
-  user: process.env.SMTP_USER || 'no-reply@readypips.com',
+  user: process.env.SMTP_USER || 'no-reply@giftech.com',
   pass: process.env.EMAIL_PASSWORD || '',
 };
 
@@ -140,7 +140,7 @@ export const sendEmail = async ({ to, subject, html }: { to: string; subject: st
   try {
 
     const fromName = process.env.SMTP_FROM_NAME || 'Ready Pips';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || 'no-reply@readypips.com';
+    const fromEmail = process.env.SMTP_FROM_EMAIL || 'no-reply@giftech.com';
   
     // console.log('📧 [Email Service] Preparing to send email...');
     // console.log('  To:', to);

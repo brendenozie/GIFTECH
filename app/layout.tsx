@@ -38,21 +38,21 @@ export const metadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL("https://readypips.com"),
+  metadataBase: new URL("https://giftech.com"),
   alternates: {
     canonical: "/",
   },
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://readypips.com",
+    url: "https://giftech.com",
     title: "Ready Pips - AI-Powered Trading Signals Platform",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm.",
     siteName: "Ready Pips",
     images: [
       {
-        url: "/readypips_ico.png",
+        url: "/giftech_ico.png",
         width: 1200,
         height: 630,
         alt: "Ready Pips - AI-Powered Trading Signals Platform",
@@ -64,8 +64,8 @@ export const metadata: Metadata = {
     title: "Ready Pips - AI-Powered Trading Signals Platform",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders.",
-    images: ["/readypips_ico.png"],
-    creator: "@readypips",
+    images: ["/giftech_ico.png"],
+    creator: "@giftech",
   },
   robots: {
     index: true,
@@ -84,9 +84,9 @@ export const metadata: Metadata = {
     yahoo: "your-yahoo-verification-code",
   },
   icons: {
-    icon: "/readypips_ico.png",
-    shortcut: "/readypips_ico.png",
-    apple: "/readypips_ico.png",
+    icon: "/giftech_ico.png",
+    shortcut: "/giftech_ico.png",
+    apple: "/giftech_ico.png",
   },
 };
 

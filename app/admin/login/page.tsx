@@ -10,7 +10,7 @@ export default function AdminLogin() {
 
   useEffect(() => {
     // Redirect to main login page
-    // Admin users (admin@readypips.com) will be automatically redirected to admin dashboard
+    // Admin users (admin@giftech.com) will be automatically redirected to admin dashboard
     if (!authLoading && (!user || (user && !user.isAdmin && !user.role))) {
       router.push('/login');
     }else if (!authLoading && user && (user.isAdmin || user.role)) {

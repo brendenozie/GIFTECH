@@ -43,7 +43,7 @@ export async function getDatabase(): Promise<Db> {
   try {
     const client = await clientPromise;
 
-    const dbName = process.env.MONGODB_DB_NAME || "READYPIPS";
+    const dbName = process.env.MONGODB_DB_NAME || "giftech";
     
     // console.log('[MongoDB] Successfully connected to database:', dbName);
     return client.db(dbName);
@@ -59,7 +59,7 @@ export async function getDatabase(): Promise<Db> {
         const newClient = new MongoClient(uri, options);
         const connectedClient = await newClient.connect();
 
-        const dbName = process.env.MONGODB_DB_NAME || "READYPIPS";
+        const dbName = process.env.MONGODB_DB_NAME || "giftech";
         
         // console.log('[MongoDB] Reconnected successfully to:', dbName);
         return connectedClient.db(dbName);

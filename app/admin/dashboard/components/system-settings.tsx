@@ -54,7 +54,7 @@ function GeneralSettings() {
           <label className="block text-sm font-medium text-gray-900 mb-2">Platform Name</label>
           <input
             type="text"
-            defaultValue="ReadyPips"
+            defaultValue="giftech"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -62,7 +62,7 @@ function GeneralSettings() {
           <label className="block text-sm font-medium text-gray-900 mb-2">Support Email</label>
           <input
             type="email"
-            defaultValue="support@readypips.com"
+            defaultValue="support@giftech.com"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>
@@ -192,7 +192,7 @@ function EmailSettings() {
           <label className="block text-sm font-medium text-gray-900 mb-2">From Email</label>
           <input
             type="email"
-            placeholder="noreply@readypips.com"
+            placeholder="noreply@giftech.com"
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           />
         </div>

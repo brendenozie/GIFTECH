@@ -291,7 +291,7 @@ export default function SignalsPage() {
                 <p className="text-blue-50 text-sm mb-6 opacity-90">Instant mobile alerts for every high-probability trade setup.</p>
                 <Button 
                     className="w-full bg-white text-[#0088cc] hover:bg-blue-50 font-black tracking-tight"
-                    onClick={() => window.open("https://t.me/readypips_pro_bot", "_blank")}
+                    onClick={() => window.open("https://t.me/giftech_pro_bot", "_blank")}
                 >
                     CONNECT TELEGRAM
                 </Button>
@@ -317,7 +317,7 @@ export default function SignalsPage() {
             </div>
             <div className="flex justify-between items-center py-2 border-b border-gray-50 dark:border-gray-800">
                 <span className="text-xs text-gray-500">Website</span>
-                <span className="text-xs font-bold text-blue-500 underline">readypips.com</span>
+                <span className="text-xs font-bold text-blue-500 underline">giftech.com</span>
             </div>
             <Button variant="ghost" className="w-full text-xs font-bold text-gray-400 hover:text-red-500">
                 Manage Subscription

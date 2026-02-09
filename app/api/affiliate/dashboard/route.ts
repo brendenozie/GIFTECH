@@ -101,7 +101,7 @@ export async function GET(req: NextRequest) {
     const totalRevenue = paid.reduce((sum, r) => sum + r.commission, 0);
 
     return NextResponse.json({
-      referralCode: `https://readypips.com/ref/${referralCode}`,
+      referralCode: `https://giftech.com/ref/${referralCode}`,
       stats: {
         totalReferrals: referrals.length,
         paidReferrals: paid.length,
@@ -219,7 +219,7 @@ function aggregateByDay(referrals: any[]) {
 //     );
 
 //     return NextResponse.json({
-//       referralCode: `https://readypips.com/ref/${referralCode}`,
+//       referralCode: `https://giftech.com/ref/${referralCode}`,
 //       stats: {
 //         totalRevenue,
 //         activeReferrals: referrals.length,
@@ -301,7 +301,7 @@ function aggregateByDay(referrals: any[]) {
 //     const totalRevenue = paidReferrals.length * 20; // example $20/month
 
 //     return NextResponse.json({
-//       referralCode: `https://readypips.com/ref/${referralCode}`,
+//       referralCode: `https://giftech.com/ref/${referralCode}`,
 //       stats: {
 //         totalRevenue,
 //         activeReferrals: referrals.length,
@@ -394,7 +394,7 @@ function aggregateByDay(referrals: any[]) {
     
 //     return NextResponse.json({
 //       // Combines the base URL with the unique rp-xxxxxx code
-//       referralCode: `https://readypips.com/ref/${referralCode}`,
+//       referralCode: `https://giftech.com/ref/${referralCode}`,
 //       stats: {
 //         totalRevenue,
 //         activeReferrals: referrals.length,
@@ -468,7 +468,7 @@ function aggregateByDay(referrals: any[]) {
 //   const totalRevenue = referrals.reduce((sum, r) => sum + r.revenue, 0);
 
 //   return NextResponse.json({
-//     referralCode: `https://readypips.com/ref/${decoded.userId}`,
+//     referralCode: `https://giftech.com/ref/${decoded.userId}`,
 //     stats: {
 //       totalRevenue,
 //       activeReferrals: referrals.length,

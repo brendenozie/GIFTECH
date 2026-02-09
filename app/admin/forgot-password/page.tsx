@@ -104,7 +104,7 @@ export default function AdminForgotPassword() {
                 </label>
                 <input
                   type="email"
-                  placeholder="admin@readypips.com"
+                  placeholder="admin@giftech.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"
@@ -153,7 +153,7 @@ export default function AdminForgotPassword() {
             <p className="text-xs text-gray-600">
               Need help?{' '}
               <a
-                href="mailto:support@readypips.com"
+                href="mailto:support@giftech.com"
                 className="text-blue-600 hover:text-blue-800 font-semibold"
               >
                 Contact Support

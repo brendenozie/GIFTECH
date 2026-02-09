@@ -135,7 +135,7 @@ export default function SupportPage() {
                   <Mail className="w-6 h-6 text-green-600 flex-shrink-0 mt-1" />
                   <div>
                     <h3 className="font-semibold text-gray-900 dark:text-white mb-1">Email</h3>
-                    <p className="text-gray-600 dark:text-gray-400">info@readypips.com</p>
+                    <p className="text-gray-600 dark:text-gray-400">info@giftech.com</p>
                   </div>
                 </CardContent>
               </Card>

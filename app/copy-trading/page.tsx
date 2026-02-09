@@ -82,8 +82,8 @@ const brokers = [
     ],
     minDeposit: "$10",
     leverage: "Up to 1:2000",
-    copyTradingLink: "https://social.exness.com/copy-trading?ref=readypips",
-    signupLink: "https://www.exness.com/accounts/register/?ref=readypips",
+    copyTradingLink: "https://social.exness.com/copy-trading?ref=giftech",
+    signupLink: "https://www.exness.com/accounts/register/?ref=giftech",
     recommended: false,
   },
 ];

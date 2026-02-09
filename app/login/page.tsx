@@ -123,7 +123,7 @@ export default function LoginPage() {
     setIsGoogleLoading(true);
     try {
       const result = await signIn('google', {
-        callbackUrl: formData.email === 'admin@readypips.com' ? '/admin/dashboard' : redirectTo,
+        callbackUrl: formData.email === 'admin@giftech.com' ? '/admin/dashboard' : redirectTo,
         redirect: true,
       });
       

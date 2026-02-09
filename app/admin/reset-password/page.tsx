@@ -157,7 +157,7 @@ export default function AdminResetPassword() {
                 </label>
                 <input
                   type="email"
-                  placeholder="admin@readypips.com"
+                  placeholder="admin@giftech.com"
                   value={resetEmail}
                   onChange={(e) => setResetEmail(e.target.value)}
                   className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-600 focus:border-transparent transition-all"

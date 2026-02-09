@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     // Send email to support
     await transporter.sendMail({
       from: process.env.EMAIL_USER,
-      to: 'info@readypips.com',
+      to: 'info@giftech.com',
       subject: `Support Request: ${queryTypeLabel} from ${name}`,
       html: emailContent,
       replyTo: email,
