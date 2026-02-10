@@ -3,7 +3,13 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Mail, ArrowLeft, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -16,7 +22,7 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!email) {
       toast.error("Please enter your email address");
       return;
@@ -41,7 +47,9 @@ export default function ForgotPasswordPage() {
       } else {
         if (data.error && data.error.includes("verify your email")) {
           setShowVerificationNote(true);
-          toast.error("Please verify your email first before resetting password");
+          toast.error(
+            "Please verify your email first before resetting password",
+          );
         } else {
           // For security, we still show success even if email doesn't exist
           // But the backend won't send an email
@@ -66,14 +74,14 @@ export default function ForgotPasswordPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -82,14 +90,17 @@ export default function ForgotPasswordPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl text-black dark:text-white">Check Your Email</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Check Your Email
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 We've sent a password reset link to <strong>{email}</strong>
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                Click the link in your email to reset your password. The link will expire in 1 hour.
+                Click the link in your email to reset your password. The link
+                will expire in 1 hour.
               </p>
               <div className="space-y-2">
                 <Link href="/login" className="w-full">
@@ -119,14 +130,14 @@ export default function ForgotPasswordPage() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <Link href="/" className="relative h-10">
-            <img 
-              src="/logo-light.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-light.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-dark.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto hidden dark:block"
             />
           </Link>
@@ -134,9 +145,12 @@ export default function ForgotPasswordPage() {
 
         <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-black dark:text-white">Forgot Password?</CardTitle>
+            <CardTitle className="text-2xl text-black dark:text-white">
+              Forgot Password?
+            </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
-              Enter your email address and we'll send you a link to reset your password.
+              Enter your email address and we'll send you a link to reset your
+              password.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -158,8 +172,11 @@ export default function ForgotPasswordPage() {
                     <AlertCircle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-amber-800 dark:text-amber-200">
                       <p className="font-medium mb-1">Email not verified</p>
-                      <p className="mb-2">You need to verify your email address before you can reset your password.</p>
-                      <Link 
+                      <p className="mb-2">
+                        You need to verify your email address before you can
+                        reset your password.
+                      </p>
+                      <Link
                         href={`/verify-email?email=${encodeURIComponent(email)}`}
                         className="text-amber-700 dark:text-amber-300 hover:underline font-medium"
                       >

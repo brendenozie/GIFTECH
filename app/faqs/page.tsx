@@ -24,12 +24,12 @@ export default function FAQsPage() {
     {
       question: "How do I receive signals?",
       answer: "Signals are automatically generated on chart in real-time.",
-        // "Signals are delivered through multiple channels depending on your subscription plan: email notifications, in-app alerts, and WhatsApp messages for premium subscribers.",
+      // "Signals are delivered through multiple channels depending on your subscription plan: email notifications, in-app alerts, and WhatsApp messages for premium subscribers.",
     },
     {
       question: "Can I use the platform on mobile?",
       answer:
-        "Yes! Ready Pips is fully mobile responsive and works seamlessly on smartphones and tablets. You can access all features and receive notifications on the go.",
+        "Yes! GIFTECHis fully mobile responsive and works seamlessly on smartphones and tablets. You can access all features and receive notifications on the go.",
     },
     {
       question: "What payment methods do you accept?",
@@ -73,7 +73,8 @@ export default function FAQsPage() {
             Frequently Asked Questions
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Find answers to common questions about Ready Pips and our trading signals.
+            Find answers to common questions about GIFTECHand our trading
+            signals.
           </p>
         </section>
 

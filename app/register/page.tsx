@@ -1,37 +1,43 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TrendingUp, Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-import Cookies from 'js-cookie';
+import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TrendingUp, Loader2 } from "lucide-react";
+import { toast } from "sonner";
+import Cookies from "js-cookie";
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    tradingviewUsername: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: '',
-    refereer: '',
+    firstName: "",
+    lastName: "",
+    tradingviewUsername: "",
+    email: "",
+    phoneNumber: "",
+    password: "",
+    confirmPassword: "",
+    refereer: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
     // Read the cookie set by the middleware
-    const savedRef = Cookies.get('refereer_code');
+    const savedRef = Cookies.get("refereer_code");
     if (savedRef) {
       setFormData((prev) => ({ ...prev, refereer: savedRef }));
       // console.log("Refereer Code Loaded:", savedRef);
@@ -40,35 +46,35 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
 
     if (!formData.phoneNumber.trim()) {
-      setError('Phone number is required');
+      setError("Phone number is required");
       return;
     }
 
     if (!formData.tradingviewUsername.trim()) {
-      setError('TradingView username is required to activate your signals');
+      setError("TradingView username is required to activate your signals");
       return;
     }
 
     if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
+      setError("Passwords do not match");
       return;
     }
 
     if (formData.password.length < 6) {
-      setError('Password must be at least 6 characters');
+      setError("Password must be at least 6 characters");
       return;
     }
 
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           firstName: formData.firstName,
@@ -84,15 +90,17 @@ export default function RegisterPage() {
       const data = await response.json();
 
       if (response.ok) {
-        Cookies.remove('referral_code');
-        toast.success('Account created successfully! Please log in.');
+        Cookies.remove("referral_code");
+        toast.success("Account created successfully! Please log in.");
         // router.push('/login');
-        router.push(`/verify-email-sent?email=${encodeURIComponent(formData.email)}`);
+        router.push(
+          `/verify-email-sent?email=${encodeURIComponent(formData.email)}`,
+        );
       } else {
-        setError(data.error || 'Registration failed');
+        setError(data.error || "Registration failed");
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -108,18 +116,18 @@ export default function RegisterPage() {
   const handleGoogleSignUp = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await signIn('google', {
-        callbackUrl: '/signals',
+      const result = await signIn("google", {
+        callbackUrl: "/signals",
         redirect: true,
       });
-      
+
       if (result?.error) {
-        toast.error('Google sign up failed. Please try again.');
+        toast.error("Google sign up failed. Please try again.");
         setIsGoogleLoading(false);
       }
     } catch (error) {
-      console.error('Google sign up error:', error);
-      toast.error('An error occurred during Google sign up.');
+      console.error("Google sign up error:", error);
+      toast.error("An error occurred during Google sign up.");
       setIsGoogleLoading(false);
     }
   };
@@ -130,7 +138,10 @@ export default function RegisterPage() {
         {/* Back to Home Button */}
         <div className="mb-4">
           <Link href="/">
-            <Button variant="ghost" className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button
+              variant="ghost"
+              className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               ← Back to Home
             </Button>
           </Link>
@@ -139,14 +150,14 @@ export default function RegisterPage() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <Link href="/" className="relative h-10">
-            <img 
-              src="/logo-light.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-light.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-dark.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto hidden dark:block"
             />
           </Link>
@@ -154,26 +165,40 @@ export default function RegisterPage() {
 
         <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-black dark:text-white">Create Your Account</CardTitle>
+            <CardTitle className="text-2xl text-black dark:text-white">
+              Create Your Account
+            </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
               Start your free trial and get access to premium trading signals
             </CardDescription>
           </CardHeader>
           <CardContent>
             {formData.refereer && (
-                <div className="max-w-md mx-auto mb-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-3">
-                  <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
-                  <p className="text-sm text-indigo-300">
-                    Partner referral applied: <span className="font-bold text-white uppercase">{formData.refereer}</span>
-                  </p>
-                </div>
-              )}            
+              <div className="max-w-md mx-auto mb-6 p-4 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center gap-3">
+                <div className="w-2 h-2 bg-indigo-500 rounded-full animate-pulse" />
+                <p className="text-sm text-indigo-300">
+                  Partner referral applied:{" "}
+                  <span className="font-bold text-white uppercase">
+                    {formData.refereer}
+                  </span>
+                </p>
+              </div>
+            )}
           </CardContent>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4"
+              autoComplete="on"
+            >
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-black dark:text-white">First Name *</Label>
+                  <Label
+                    htmlFor="firstName"
+                    className="text-black dark:text-white"
+                  >
+                    First Name *
+                  </Label>
                   <Input
                     id="firstName"
                     name="firstName"
@@ -186,7 +211,12 @@ export default function RegisterPage() {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-black dark:text-white">Last Name *</Label>
+                  <Label
+                    htmlFor="lastName"
+                    className="text-black dark:text-white"
+                  >
+                    Last Name *
+                  </Label>
                   <Input
                     id="lastName"
                     name="lastName"
@@ -220,13 +250,15 @@ export default function RegisterPage() {
                 />
 
                 <p className="text-xs text-gray-600 dark:text-gray-400">
-                  ⚠️ Required to add you to our private TradingView signals & alerts.
+                  ⚠️ Required to add you to our private TradingView signals &
+                  alerts.
                 </p>
               </div>
 
-              
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-black dark:text-white">Email *</Label>
+                <Label htmlFor="email" className="text-black dark:text-white">
+                  Email *
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -240,7 +272,12 @@ export default function RegisterPage() {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="phoneNumber" className="text-black dark:text-white">Phone Number *</Label>
+                <Label
+                  htmlFor="phoneNumber"
+                  className="text-black dark:text-white"
+                >
+                  Phone Number *
+                </Label>
                 <Input
                   id="phoneNumber"
                   name="phoneNumber"
@@ -253,9 +290,14 @@ export default function RegisterPage() {
                   className="bg-white dark:bg-black border-gray-300 dark:border-gray-600 text-black dark:text-white"
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-black dark:text-white">Password *</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-black dark:text-white"
+                >
+                  Password *
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -267,9 +309,14 @@ export default function RegisterPage() {
                   className="bg-white dark:bg-black border-gray-300 dark:border-gray-600 text-black dark:text-white"
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="confirmPassword" className="text-black dark:text-white">Confirm Password *</Label>
+                <Label
+                  htmlFor="confirmPassword"
+                  className="text-black dark:text-white"
+                >
+                  Confirm Password *
+                </Label>
                 <Input
                   id="confirmPassword"
                   name="confirmPassword"
@@ -288,9 +335,9 @@ export default function RegisterPage() {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full bg-green-600 hover:bg-green-700 text-white" 
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -299,7 +346,7 @@ export default function RegisterPage() {
                     Creating Account...
                   </>
                 ) : (
-                  'Create Account'
+                  "Create Account"
                 )}
               </Button>
             </form>
@@ -307,7 +354,9 @@ export default function RegisterPage() {
             {/* Divider */}
             <div className="mt-6 mb-6 flex items-center">
               <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-              <span className="px-4 text-sm text-gray-600 dark:text-gray-400">or</span>
+              <span className="px-4 text-sm text-gray-600 dark:text-gray-400">
+                or
+              </span>
               <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
             </div>
 
@@ -338,8 +387,13 @@ export default function RegisterPage() {
             </Button> */}
 
             <div className="mt-6 text-center text-sm">
-              <span className="text-gray-600 dark:text-gray-400">Already have an account? </span>
-              <Link href="/login" className="text-green-600 hover:text-green-700 hover:underline">
+              <span className="text-gray-600 dark:text-gray-400">
+                Already have an account?{" "}
+              </span>
+              <Link
+                href="/login"
+                className="text-green-600 hover:text-green-700 hover:underline"
+              >
                 Sign in
               </Link>
             </div>

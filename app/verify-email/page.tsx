@@ -2,7 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { CheckCircle, XCircle, Mail, RefreshCw } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -14,23 +20,23 @@ export default function VerifyEmailPage() {
   const [error, setError] = useState("");
   const [resending, setResending] = useState(false);
   const [email, setEmail] = useState("");
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
   useEffect(() => {
     const token = searchParams.get("token");
     const emailParam = searchParams.get("email");
-    
+
     if (!token) {
       setError("Invalid verification link");
       return;
     }
-    
+
     if (emailParam) {
       setEmail(emailParam);
     }
-    
+
     // Auto-verify the email
     verifyEmail(token);
   }, [searchParams]);
@@ -100,14 +106,14 @@ export default function VerifyEmailPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -116,7 +122,9 @@ export default function VerifyEmailPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <RefreshCw className="h-16 w-16 text-green-600 mx-auto mb-4 animate-spin" />
-              <CardTitle className="text-2xl text-black dark:text-white">Verifying Email...</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Verifying Email...
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 Please wait while we verify your email address
               </CardDescription>
@@ -134,14 +142,14 @@ export default function VerifyEmailPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -150,9 +158,12 @@ export default function VerifyEmailPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl text-black dark:text-white">Email Verified!</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Email Verified!
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
-                Your email has been successfully verified. You can now log in to your account.
+                Your email has been successfully verified. You can now log in to
+                your account.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -175,14 +186,14 @@ export default function VerifyEmailPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -191,14 +202,17 @@ export default function VerifyEmailPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <XCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl text-black dark:text-white">Verification Failed</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Verification Failed
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 {error}
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-600 dark:text-gray-400 text-center">
-                The verification link may have expired or is invalid. You can request a new verification email.
+                The verification link may have expired or is invalid. You can
+                request a new verification email.
               </p>
               <div className="space-y-2">
                 <Button
@@ -238,14 +252,14 @@ export default function VerifyEmailPage() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <Link href="/" className="relative h-10">
-            <img 
-              src="/logo-light.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-light.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-dark.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto hidden dark:block"
             />
           </Link>
@@ -253,7 +267,9 @@ export default function VerifyEmailPage() {
 
         <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-black dark:text-white">Email Verification</CardTitle>
+            <CardTitle className="text-2xl text-black dark:text-white">
+              Email Verification
+            </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
               Processing your verification request...
             </CardDescription>

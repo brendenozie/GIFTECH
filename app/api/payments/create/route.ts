@@ -12,16 +12,19 @@ export async function POST(req: NextRequest) {
   try {
     const { planId, provider } = await req.json();
 
-    const planConfig = PLANS.find(p => p.id === planId);
-    if (!planConfig) return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
+    const planConfig = PLANS.find((p) => p.id === planId);
+    if (!planConfig)
+      return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
 
     const authHeader = req.headers.get("authorization");
     const token = authHeader?.substring(7);
-    
-    if (!token) return NextResponse.json({ error: "No token provided" }, { status: 401 });
-    
+
+    if (!token)
+      return NextResponse.json({ error: "No token provided" }, { status: 401 });
+
     const decoded = verifyToken(token);
-    if (!decoded) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!decoded)
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Fallback: If email isn't in token, fetch from DB
     let userEmail = decoded.email;
@@ -45,29 +48,32 @@ export async function POST(req: NextRequest) {
     });
 
     if (provider === "whop") {
-      // 1. Fetch the Plan ID from your plan config 
+      // 1. Fetch the Plan ID from your plan config
       // You need to find the plan_XXXX ID from your Whop Dashboard -> Checkout Links
-      const planConfig = PLANS.find(p => p.id === planId);
+      const planConfig = PLANS.find((p) => p.id === planId);
       const whopPlanId = planConfig?.whopPlanId; // Ensure this is in your plans.ts
 
       // 2. Request a session from Whop
-      const response = await fetch("https://api.whop.com/api/v2/checkout_sessions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${process.env.WHOP_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          plan_id: whopPlanId, 
-          email: decoded.email, // Pre-fills for the user
-          metadata: { 
-            custom_id: reference // This comes back in the webhook later
+      const response = await fetch(
+        "https://api.whop.com/api/v2/checkout_sessions",
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${process.env.WHOP_API_KEY}`,
+            "Content-Type": "application/json",
           },
-          success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
-          cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
-          // redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?status=success`
-        }),
-      });
+          body: JSON.stringify({
+            plan_id: whopPlanId,
+            email: decoded.email, // Pre-fills for the user
+            metadata: {
+              custom_id: reference, // This comes back in the webhook later
+            },
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/success`,
+            cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/billing/cancel`,
+            // redirect_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?status=success`
+          }),
+        },
+      );
 
       const session = await response.json();
 
@@ -81,20 +87,20 @@ export async function POST(req: NextRequest) {
       console.log("Whop Checkout URL:", session.purchase_url);
       return NextResponse.json({ checkoutUrl: session.purchase_url });
     }
-    
+
     // if (provider === "whop") {
     //   const whopUrl = new URL(`https://whop.com/checkout/${process.env.NEXT_PUBLIC_WHOP_APP_ID}`);
     //   whopUrl.searchParams.append("custom_id", reference);
     //   // Pre-fill email so the user doesn't have to type it again
-    //   if (userEmail) whopUrl.searchParams.append("email", userEmail); 
+    //   if (userEmail) whopUrl.searchParams.append("email", userEmail);
 
     //   return NextResponse.json({ checkoutUrl: whopUrl.toString() });
     // }
 
-     
     if (provider === "binance") {
-      const endpoint = "https://bpay.binanceapi.com/binancepay/openapi/v2/order";
-  
+      const endpoint =
+        "https://bpay.binanceapi.com/binancepay/openapi/v2/order";
+
       // Binance requires a 32-character random string for the Nonce
       const nonce = crypto.randomBytes(16).toString("hex"); // 32 hex chars
       const timestamp = Date.now().toString();
@@ -108,7 +114,7 @@ export async function POST(req: NextRequest) {
           goodsType: "02", // Use "02" for Virtual Goods (Subscriptions)
           goodsCategory: "6000",
           referenceGoodsId: planId,
-          goodsName: `Ready Pips ${planConfig?.name}`,
+          goodsName: `GIFTECH${planConfig?.name}`,
           goodsDetail: `Subscription for ${planConfig?.duration} days`,
         },
         returnUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?payment=success`,
@@ -116,10 +122,10 @@ export async function POST(req: NextRequest) {
       };
 
       const bodyString = JSON.stringify(orderBody);
-      
+
       // Signature Payload format must be exact: timestamp + \n + nonce + \n + body + \n
       const payload = `${timestamp}\n${nonce}\n${bodyString}\n`;
-      
+
       const signature = crypto
         .createHmac("sha512", process.env.BINANCE_PAY_SECRET!)
         .update(payload)
@@ -159,16 +165,14 @@ export async function POST(req: NextRequest) {
         throw new Error("Binance Order Creation Failed");
       }
     }
-    
 
     if (provider === "1binancev1") {
       return NextResponse.json({
-        checkoutUrl: `https://pay.binance.com/en/checkout?merchantTradeNo=${reference}&totalFee=${planConfig.usd}&currency=USDT&terminalType=WEB`
+        checkoutUrl: `https://pay.binance.com/en/checkout?merchantTradeNo=${reference}&totalFee=${planConfig.usd}&currency=USDT&terminalType=WEB`,
       });
     }
 
     return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
-
   } catch (error) {
     console.error("Payment API Error:", error);
     return NextResponse.json({ error: "Server Error" }, { status: 500 });
@@ -209,13 +213,13 @@ export async function POST(req: NextRequest) {
 //     });
 
 //     if (provider === "whop") {
-//       // Instead of a hardcoded product ID, we use the Whop Checkout link 
+//       // Instead of a hardcoded product ID, we use the Whop Checkout link
 //       // with your App ID and pass user details as query params
 //       const whopUrl = new URL(`https://whop.com/checkout/${process.env.NEXT_PUBLIC_WHOP_APP_ID}`);
 //       whopUrl.searchParams.append("custom_id", reference);
 //       whopUrl.searchParams.append("email", decoded.email);
 //       // If your Whop plans are setup, you can map them here:
-//       // whopUrl.searchParams.append("plan", planId); 
+//       // whopUrl.searchParams.append("plan", planId);
 
 //       return NextResponse.json({ checkoutUrl: whopUrl.toString() });
 //     }

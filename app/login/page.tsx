@@ -1,26 +1,33 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { signIn } from 'next-auth/react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { TrendingUp, Loader2, Mail } from 'lucide-react';
-import { toast } from 'sonner';
-import { useAuth } from '@/components/auth-context';
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TrendingUp, Loader2, Mail } from "lucide-react";
+import { toast } from "sonner";
+import { useAuth } from "@/components/auth-context";
 
 export default function LoginPage() {
   const [formData, setFormData] = useState({
-    email: '',
-    password: '',
+    email: "",
+    password: "",
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [isEmailVerificationError, setIsEmailVerificationError] = useState(false);
+  const [error, setError] = useState("");
+  const [isEmailVerificationError, setIsEmailVerificationError] =
+    useState(false);
   const [isResendingVerification, setIsResendingVerification] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [isRedirecting, setIsRedirecting] = useState(false);
@@ -29,14 +36,17 @@ export default function LoginPage() {
   const { user, loading: authLoading, login } = useAuth();
 
   // Get redirect URL from search params
-  const redirectTo = searchParams.get('redirect') || '/signals';
+  const redirectTo = searchParams.get("redirect") || "/signals";
 
   // Redirect if user is already authenticated
   useEffect(() => {
     if (!authLoading && user && !isRedirecting) {
       // Check if user is an admin
-      const isAdmin = (user as any).isAdmin || (user as any).role === 'super_admin' || (user as any).role === 'admin';
-      const destination = isAdmin ? '/admin/dashboard' : redirectTo;
+      const isAdmin =
+        (user as any).isAdmin ||
+        (user as any).role === "super_admin" ||
+        (user as any).role === "admin";
+      const destination = isAdmin ? "/admin/dashboard" : redirectTo;
       // console.log('✅ User already authenticated, redirecting to:', destination);
       setIsRedirecting(true);
       router.replace(destination);
@@ -45,15 +55,15 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsEmailVerificationError(false);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify(formData),
       });
@@ -61,27 +71,31 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Welcome back!');
-        
+        toast.success("Welcome back!");
+
         // Check if user is admin and redirect accordingly
-        if (data.user?.isAdmin || data.user?.role === 'super_admin' || data.user?.role === 'admin') {
+        if (
+          data.user?.isAdmin ||
+          data.user?.role === "super_admin" ||
+          data.user?.role === "admin"
+        ) {
           // console.log('Admin user detected, redirecting to admin dashboard');
-          login(data.token, '/admin/dashboard');
+          login(data.token, "/admin/dashboard");
         } else {
           // console.log('Regular user detected, redirecting to:', redirectTo);
           login(data.token, redirectTo);
         }
       } else {
-        const errorMessage = data.error || 'Login failed';
+        const errorMessage = data.error || "Login failed";
         setError(errorMessage);
-        
+
         // Check if it's an email verification error
-        if (errorMessage.includes('verify your email address')) {
+        if (errorMessage.includes("verify your email address")) {
           setIsEmailVerificationError(true);
         }
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError("Network error. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -89,16 +103,16 @@ export default function LoginPage() {
 
   const handleResendVerification = async () => {
     if (!formData.email) {
-      toast.error('Please enter your email address first');
+      toast.error("Please enter your email address first");
       return;
     }
 
     setIsResendingVerification(true);
     try {
-      const response = await fetch('/api/auth/resend-verification', {
-        method: 'POST',
+      const response = await fetch("/api/auth/resend-verification", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ email: formData.email }),
       });
@@ -106,14 +120,14 @@ export default function LoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        toast.success('Verification email sent successfully!');
+        toast.success("Verification email sent successfully!");
         setIsEmailVerificationError(false);
-        setError('');
+        setError("");
       } else {
-        toast.error(data.error || 'Failed to resend verification email');
+        toast.error(data.error || "Failed to resend verification email");
       }
     } catch (error) {
-      toast.error('An error occurred. Please try again.');
+      toast.error("An error occurred. Please try again.");
     } finally {
       setIsResendingVerification(false);
     }
@@ -122,18 +136,21 @@ export default function LoginPage() {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      const result = await signIn('google', {
-        callbackUrl: formData.email === 'admin@giftech.com' ? '/admin/dashboard' : redirectTo,
+      const result = await signIn("google", {
+        callbackUrl:
+          formData.email === "admin@giftech.com"
+            ? "/admin/dashboard"
+            : redirectTo,
         redirect: true,
       });
-      
+
       if (result?.error) {
-        toast.error('Google sign in failed. Please try again.');
+        toast.error("Google sign in failed. Please try again.");
         setIsGoogleLoading(false);
       }
     } catch (error) {
-      console.error('Google sign in error:', error);
-      toast.error('An error occurred during Google sign in.');
+      console.error("Google sign in error:", error);
+      toast.error("An error occurred during Google sign in.");
       setIsGoogleLoading(false);
     }
   };
@@ -151,7 +168,9 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-white dark:bg-black">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Checking authentication...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Checking authentication...
+          </p>
         </div>
       </div>
     );
@@ -163,7 +182,9 @@ export default function LoginPage() {
       <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-white dark:bg-black">
         <div className="text-center">
           <div className="w-8 h-8 border-4 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600 dark:text-gray-400">Redirecting to dashboard...</p>
+          <p className="text-gray-600 dark:text-gray-400">
+            Redirecting to dashboard...
+          </p>
         </div>
       </div>
     );
@@ -175,7 +196,10 @@ export default function LoginPage() {
         {/* Back to Home Button */}
         <div className="mb-4">
           <Link href="/">
-            <Button variant="ghost" className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800">
+            <Button
+              variant="ghost"
+              className="text-black dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
+            >
               ← Back to Home
             </Button>
           </Link>
@@ -184,14 +208,14 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <Link href="/" className="relative h-10">
-            <img 
-              src="/logo-light.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-light.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-dark.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto hidden dark:block"
             />
           </Link>
@@ -199,15 +223,23 @@ export default function LoginPage() {
 
         <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-black dark:text-white">Welcome Back</CardTitle>
+            <CardTitle className="text-2xl text-black dark:text-white">
+              Welcome Back
+            </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
               Sign in to access your trading signals dashboard
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4" autoComplete="on">
+            <form
+              onSubmit={handleSubmit}
+              className="space-y-4"
+              autoComplete="on"
+            >
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-black dark:text-white">Email</Label>
+                <Label htmlFor="email" className="text-black dark:text-white">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -219,9 +251,14 @@ export default function LoginPage() {
                   className="bg-white dark:bg-black border-gray-300 dark:border-gray-600 text-black dark:text-white"
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-black dark:text-white">Password</Label>
+                <Label
+                  htmlFor="password"
+                  className="text-black dark:text-white"
+                >
+                  Password
+                </Label>
                 <Input
                   id="password"
                   name="password"
@@ -267,9 +304,9 @@ export default function LoginPage() {
                 </Alert>
               )}
 
-              <Button 
-                type="submit" 
-                className="w-full bg-green-600 hover:bg-green-700 text-white" 
+              <Button
+                type="submit"
+                className="w-full bg-green-600 hover:bg-green-700 text-white"
                 disabled={isLoading}
               >
                 {isLoading ? (
@@ -278,7 +315,7 @@ export default function LoginPage() {
                     Signing In...
                   </>
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </Button>
             </form>
@@ -286,7 +323,9 @@ export default function LoginPage() {
             {/* Divider */}
             <div className="mt-6 mb-6 flex items-center">
               <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-              <span className="px-4 text-sm text-gray-600 dark:text-gray-400">or</span>
+              <span className="px-4 text-sm text-gray-600 dark:text-gray-400">
+                or
+              </span>
               <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
             </div>
 
@@ -318,13 +357,19 @@ export default function LoginPage() {
 
             <div className="mt-6 text-center text-sm">
               <span className="text-gray-600 dark:text-gray-400">{`Don't have an account?`}</span>
-              <Link href="/register" className="text-green-600 hover:text-green-700 hover:underline">
+              <Link
+                href="/register"
+                className="text-green-600 hover:text-green-700 hover:underline"
+              >
                 Create one
               </Link>
             </div>
-            
+
             <div className="mt-4 text-center">
-              <Link href="/forgot-password" className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600">
+              <Link
+                href="/forgot-password"
+                className="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600"
+              >
                 Forgot your password?
               </Link>
             </div>

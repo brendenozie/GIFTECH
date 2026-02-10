@@ -3,7 +3,13 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Lock, Eye, EyeOff, CheckCircle, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -18,7 +24,7 @@ export default function ResetPasswordPage() {
   const [success, setSuccess] = useState(false);
   const [token, setToken] = useState("");
   const [tokenError, setTokenError] = useState(false);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -37,7 +43,7 @@ export default function ResetPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password.length < 6) {
       toast.error("Password must be at least 6 characters long");
       return;
@@ -55,9 +61,9 @@ export default function ResetPasswordPage() {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           token,
-          password 
+          password,
         }),
       });
 
@@ -94,14 +100,14 @@ export default function ResetPasswordPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -110,9 +116,12 @@ export default function ResetPasswordPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <CheckCircle className="h-16 w-16 text-green-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl text-black dark:text-white">Password Reset Successfully!</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Password Reset Successfully!
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
-                Your password has been updated. You can now log in with your new password.
+                Your password has been updated. You can now log in with your new
+                password.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -135,14 +144,14 @@ export default function ResetPasswordPage() {
           {/* Logo */}
           <div className="flex items-center justify-center mb-8">
             <Link href="/" className="relative h-10">
-              <img 
-                src="/logo-light.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-light.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto dark:hidden"
               />
-              <img 
-                src="/logo-dark.png" 
-                alt="Ready Pips Logo" 
+              <img
+                src="/logo-dark.png"
+                alt="GIFTECHLogo"
                 className="h-10 w-auto hidden dark:block"
               />
             </Link>
@@ -151,7 +160,9 @@ export default function ResetPasswordPage() {
           <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
             <CardHeader className="text-center">
               <AlertCircle className="h-16 w-16 text-red-600 mx-auto mb-4" />
-              <CardTitle className="text-2xl text-black dark:text-white">Invalid Reset Link</CardTitle>
+              <CardTitle className="text-2xl text-black dark:text-white">
+                Invalid Reset Link
+              </CardTitle>
               <CardDescription className="text-gray-600 dark:text-gray-400">
                 This password reset link is invalid or has expired.
               </CardDescription>
@@ -178,14 +189,14 @@ export default function ResetPasswordPage() {
         {/* Logo */}
         <div className="flex items-center justify-center mb-8">
           <Link href="/" className="relative h-10">
-            <img 
-              src="/logo-light.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-light.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto dark:hidden"
             />
-            <img 
-              src="/logo-dark.png" 
-              alt="Ready Pips Logo" 
+            <img
+              src="/logo-dark.png"
+              alt="GIFTECHLogo"
               className="h-10 w-auto hidden dark:block"
             />
           </Link>
@@ -193,7 +204,9 @@ export default function ResetPasswordPage() {
 
         <Card className="bg-white dark:bg-black border-gray-200 dark:border-gray-800">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-black dark:text-white">Reset Your Password</CardTitle>
+            <CardTitle className="text-2xl text-black dark:text-white">
+              Reset Your Password
+            </CardTitle>
             <CardDescription className="text-gray-600 dark:text-gray-400">
               Enter your new password below
             </CardDescription>
@@ -201,7 +214,9 @@ export default function ResetPasswordPage() {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium text-black dark:text-white">New Password (min. 6 characters)</label>
+                <label className="text-sm font-medium text-black dark:text-white">
+                  New Password (min. 6 characters)
+                </label>
                 <div className="relative">
                   <Input
                     type={showPassword ? "text" : "password"}
@@ -227,9 +242,11 @@ export default function ResetPasswordPage() {
                   </Button>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-medium text-black dark:text-white">Confirm Password</label>
+                <label className="text-sm font-medium text-black dark:text-white">
+                  Confirm Password
+                </label>
                 <div className="relative">
                   <Input
                     type={showConfirmPassword ? "text" : "password"}
@@ -270,7 +287,7 @@ export default function ResetPasswordPage() {
                   </>
                 )}
               </Button>
-              
+
               <div className="text-center">
                 <Link
                   href="/login"

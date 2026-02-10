@@ -25,8 +25,10 @@ export default function TermsConditionsPage() {
               1. Agreement to Terms
             </h2>
             <p>
-              By accessing and using the Ready Pips website and mobile application, you accept and agree to be bound by the terms and provision
-              of this agreement. If you do not agree to abide by the above, please do not use this service.
+              By accessing and using the GIFTECHwebsite and mobile application,
+              you accept and agree to be bound by the terms and provision of
+              this agreement. If you do not agree to abide by the above, please
+              do not use this service.
             </p>
           </div>
 
@@ -35,15 +37,26 @@ export default function TermsConditionsPage() {
               2. License and Site Access
             </h2>
             <p className="mb-3">
-              Ready Pips grants you a limited, non-exclusive, non-transferable license to access and use the Site and its content,
-              subject to the terms and conditions of this Agreement. This license does not include:
+              GIFTECHgrants you a limited, non-exclusive, non-transferable
+              license to access and use the Site and its content, subject to the
+              terms and conditions of this Agreement. This license does not
+              include:
             </p>
             <ul className="list-disc list-inside space-y-2">
               <li>The right to modify or copy material</li>
-              <li>The right to use this site for any commercial purpose or for any public display</li>
-              <li>The right to attempt to decompile or reverse engineer any software</li>
+              <li>
+                The right to use this site for any commercial purpose or for any
+                public display
+              </li>
+              <li>
+                The right to attempt to decompile or reverse engineer any
+                software
+              </li>
               <li>The right to remove any copyright or proprietary notices</li>
-              <li>The right to transfer the materials to another person or to &quot;mirror&quot; the materials on any other server</li>
+              <li>
+                The right to transfer the materials to another person or to
+                &quot;mirror&quot; the materials on any other server
+              </li>
             </ul>
           </div>
 
@@ -52,10 +65,13 @@ export default function TermsConditionsPage() {
               3. Disclaimer of Warranties
             </h2>
             <p>
-              THE MATERIALS ON READY PIPS WEBSITE AND MOBILE APPLICATION ARE PROVIDED ON AN &quot;AS IS&quot; BASIS.
-              READY PIPS MAKES NO WARRANTIES, EXPRESSED OR IMPLIED, AND HEREBY DISCLAIMS AND NEGATES ALL OTHER WARRANTIES
-              INCLUDING, WITHOUT LIMITATION, IMPLIED WARRANTIES OR CONDITIONS OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE,
-              OR NON-INFRINGEMENT OF INTELLECTUAL PROPERTY OR OTHER VIOLATION OF RIGHTS.
+              THE MATERIALS ON GIFTECHWEBSITE AND MOBILE APPLICATION ARE
+              PROVIDED ON AN &quot;AS IS&quot; BASIS. GIFTECHMAKES NO
+              WARRANTIES, EXPRESSED OR IMPLIED, AND HEREBY DISCLAIMS AND NEGATES
+              ALL OTHER WARRANTIES INCLUDING, WITHOUT LIMITATION, IMPLIED
+              WARRANTIES OR CONDITIONS OF MERCHANTABILITY, FITNESS FOR A
+              PARTICULAR PURPOSE, OR NON-INFRINGEMENT OF INTELLECTUAL PROPERTY
+              OR OTHER VIOLATION OF RIGHTS.
             </p>
           </div>
 
@@ -64,12 +80,12 @@ export default function TermsConditionsPage() {
               4. Investment Risk Disclaimer
             </h2>
             <p className="mb-3">
-              Trading and investing involve substantial risk of loss. Past performance does not guarantee future results.
-              The trading signals provided by Ready Pips are educational in nature and should not be considered as financial advice.
+              Trading and investing involve substantial risk of loss. Past
+              performance does not guarantee future results. The trading signals
+              provided by GIFTECHare educational in nature and should not be
+              considered as financial advice.
             </p>
-            <p>
-              You acknowledge that:
-            </p>
+            <p>You acknowledge that:</p>
             <ul className="list-disc list-inside space-y-2 mt-2">
               <li>You use the signals at your own risk</li>
               <li>No trading system is guaranteed to be profitable</li>
@@ -83,12 +99,21 @@ export default function TermsConditionsPage() {
               5. Subscription Terms
             </h2>
             <p className="mb-3">
-              Ready Pips offers subscription plans (Weekly, Monthly, 3 Months). By subscribing, you agree to:
+              GIFTECHoffers subscription plans (Weekly, Monthly, 3 Months). By
+              subscribing, you agree to:
             </p>
             <ul className="list-disc list-inside space-y-2">
-              <li>Automatic renewal at the end of each billing period unless cancelled</li>
-              <li>Charges will appear on your payment method as &quot;Ready Pips&quot;</li>
-              <li>You can cancel your subscription at any time through your account settings</li>
+              <li>
+                Automatic renewal at the end of each billing period unless
+                cancelled
+              </li>
+              <li>
+                Charges will appear on your payment method as &quot;GIFTECH&quot;
+              </li>
+              <li>
+                You can cancel your subscription at any time through your
+                account settings
+              </li>
               <li>Refunds are subject to our refund policy</li>
             </ul>
           </div>
@@ -98,10 +123,11 @@ export default function TermsConditionsPage() {
               6. Limitations of Liability
             </h2>
             <p>
-              IN NO EVENT SHALL READY PIPS, ITS DIRECTORS, EMPLOYEES, OR AGENTS BE LIABLE FOR ANY DAMAGES
-              (WHETHER DIRECT, INDIRECT, INCIDENTAL, SPECIAL, CONSEQUENTIAL, OR PUNITIVE) ARISING OUT OF YOUR USE
-              OR INABILITY TO USE THE MATERIALS ON READY PIPS, EVEN IF READY PIPS HAS BEEN ADVISED OF THE POSSIBILITY
-              OF SUCH DAMAGES.
+              IN NO EVENT SHALL GIFTECH, ITS DIRECTORS, EMPLOYEES, OR AGENTS
+              BE LIABLE FOR ANY DAMAGES (WHETHER DIRECT, INDIRECT, INCIDENTAL,
+              SPECIAL, CONSEQUENTIAL, OR PUNITIVE) ARISING OUT OF YOUR USE OR
+              INABILITY TO USE THE MATERIALS ON GIFTECH, EVEN IF GIFTECHHAS
+              BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES.
             </p>
           </div>
 
@@ -110,8 +136,9 @@ export default function TermsConditionsPage() {
               7. Governing Law
             </h2>
             <p>
-              These terms and conditions are governed by and construed in accordance with the laws of Kenya,
-              and you irrevocably submit to the exclusive jurisdiction of the courts located therein.
+              These terms and conditions are governed by and construed in
+              accordance with the laws of Kenya, and you irrevocably submit to
+              the exclusive jurisdiction of the courts located therein.
             </p>
           </div>
 
@@ -120,7 +147,8 @@ export default function TermsConditionsPage() {
               8. Contact Information
             </h2>
             <p>
-              If you have any questions about these Terms and Conditions, please contact us at:
+              If you have any questions about these Terms and Conditions, please
+              contact us at:
             </p>
             <ul className="list-disc list-inside space-y-2 mt-4">
               <li>Email: briancreatives@gmail.com</li>
@@ -130,8 +158,9 @@ export default function TermsConditionsPage() {
 
           <div className="bg-green-50 dark:bg-green-900 p-6 rounded-lg">
             <p className="text-sm">
-              By using Ready Pips, you acknowledge that you have read these Terms and Conditions
-              and agree to be bound by all of the terms and conditions contained herein.
+              By using GIFTECH, you acknowledge that you have read these
+              Terms and Conditions and agree to be bound by all of the terms and
+              conditions contained herein.
             </p>
           </div>
         </section>

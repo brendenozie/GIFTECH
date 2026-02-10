@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     if (provider && provider !== "stripe") {
       return NextResponse.json(
         { error: "This endpoint only handles Stripe payments" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
             "You already have an active subscription. Please contact support to change your plan.",
           hasActiveSubscription: true,
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -83,7 +83,7 @@ export async function POST(request: NextRequest) {
     //   "  - Fallback URL:",
     //   process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
     // );
- 
+
     const finalSuccessUrl =
       requestSuccessUrl ||
       `${
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     // Ensure the success URL has the correct format
     if (!finalSuccessUrl.includes("{CHECKOUT_SESSION_ID}")) {
       console.log(
-        "⚠️ [Create Checkout] Warning: Success URL missing session ID placeholder"
+        "⚠️ [Create Checkout] Warning: Success URL missing session ID placeholder",
       );
     }
 
@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
             currency: "usd",
             product_data: {
               name: `${plan.charAt(0).toUpperCase() + plan.slice(1)} Plan`,
-              description: `Ready Pips ${
+              description: `GIFTECH${
                 plan.charAt(0).toUpperCase() + plan.slice(1)
               } Subscription`,
             },
@@ -159,7 +159,7 @@ export async function POST(request: NextRequest) {
     // Now construct the actual success URL with the real session ID
     const actualSuccessUrl = finalSuccessUrl.replace(
       "{CHECKOUT_SESSION_ID}",
-      session.id
+      session.id,
     );
 
     // console.log("🔍 [Create Checkout] Stripe session created:", {
@@ -191,7 +191,7 @@ export async function POST(request: NextRequest) {
     // Check if Stripe's success_url matches our expected URL
     if (session.success_url !== actualSuccessUrl) {
       console.log(
-        "⚠️ [Create Checkout] Warning: Stripe's success_url doesn't match expected URL"
+        "⚠️ [Create Checkout] Warning: Stripe's success_url doesn't match expected URL",
       );
       // console.log("  - Expected:", actualSuccessUrl);
       // console.log("  - Actual:", session.success_url);
@@ -202,7 +202,7 @@ export async function POST(request: NextRequest) {
     console.error("Error creating checkout session:", error);
     return NextResponse.json(
       { error: "Failed to create checkout session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -13,8 +13,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "Ready Pips - AI-Powered Trading Signals Platform",
-    template: "%s | Ready Pips",
+    default: "GIFTECH- AI-Powered Trading Signals Platform",
+    template: "%s | GIFTECH",
   },
   description:
     "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm for forex, crypto, and stocks.",
@@ -30,9 +30,9 @@ export const metadata: Metadata = {
     "trading alerts",
     "financial markets",
   ],
-  authors: [{ name: "Ready Pips Team" }],
-  creator: "Ready Pips",
-  publisher: "Ready Pips",
+  authors: [{ name: "GIFTECHTeam" }],
+  creator: "GIFTECH",
+  publisher: "GIFTECH",
   formatDetection: {
     email: false,
     address: false,
@@ -46,22 +46,22 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://giftech.com",
-    title: "Ready Pips - AI-Powered Trading Signals Platform",
+    title: "GIFTECH- AI-Powered Trading Signals Platform",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm.",
-    siteName: "Ready Pips",
+    siteName: "GIFTECH",
     images: [
       {
         url: "/giftech_ico.png",
         width: 1200,
         height: 630,
-        alt: "Ready Pips - AI-Powered Trading Signals Platform",
+        alt: "GIFTECH- AI-Powered Trading Signals Platform",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "Ready Pips - AI-Powered Trading Signals Platform",
+    title: "GIFTECH- AI-Powered Trading Signals Platform",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders.",
     images: ["/giftech_ico.png"],

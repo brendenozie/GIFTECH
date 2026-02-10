@@ -1,11 +1,11 @@
-import nodemailer from 'nodemailer';
+import nodemailer from "nodemailer";
 //refresh dotenv config
 // Force hardcoded Hostinger settings since .env is not loading properly
 const SMTP_CONFIG = {
-  host: process.env.SMTP_HOST || 'smtp.hostinger.com',
+  host: process.env.SMTP_HOST || "smtp.hostinger.com",
   port: Number(process.env.SMTP_PORT) || 587,
-  user: process.env.SMTP_USER || 'no-reply@giftech.com',
-  pass: process.env.EMAIL_PASSWORD || '',
+  user: process.env.SMTP_USER || "no-reply@giftech.com",
+  pass: process.env.EMAIL_PASSWORD || "",
 };
 
 // console.log('📧 [Email Service] SMTP Configuration (HARDCODED):');
@@ -24,14 +24,14 @@ const transporter = nodemailer.createTransport({
     pass: SMTP_CONFIG.pass,
   },
   tls: {
-    rejectUnauthorized: false // Accept self-signed certificates
-  }
+    rejectUnauthorized: false, // Accept self-signed certificates
+  },
 });
 
 // Email templates
 export const emailTemplates = {
   emailVerification: (firstName: string, verificationUrl: string) => ({
-    subject: 'Verify Your Email - Ready Pips',
+    subject: "Verify Your Email - GIFTECH",
     html: `
       <!DOCTYPE html>
       <html>
@@ -52,13 +52,13 @@ export const emailTemplates = {
       <body>
         <div class="container">
           <div class="header">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo-light.png" alt="Ready Pips" class="logo">
-            <h1>Welcome to Ready Pips!</h1>
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo-light.png" alt="GIFTECH" class="logo">
+            <h1>Welcome to GIFTECH!</h1>
           </div>
           
           <p>Hello ${firstName},</p>
           
-          <p>Thank you for registering with Ready Pips! To complete your registration and access your account, please verify your email address by clicking the button below:</p>
+          <p>Thank you for registering with GIFTECH! To complete your registration and access your account, please verify your email address by clicking the button below:</p>
           
           <div style="text-align: center;">
             <a href="${verificationUrl}" class="button">Verify Email Address</a>
@@ -72,7 +72,7 @@ export const emailTemplates = {
           <p style="word-break: break-all; color: #16a34a;">${verificationUrl}</p>
           
           <div class="footer">
-            <p>Best regards,<br>The Ready Pips Team</p>
+            <p>Best regards,<br>The GIFTECHTeam</p>
             <p>If you have any questions, please contact our support team.</p>
           </div>
         </div>
@@ -82,7 +82,7 @@ export const emailTemplates = {
   }),
 
   passwordReset: (firstName: string, resetUrl: string) => ({
-    subject: 'Reset Your Password - Ready Pips',
+    subject: "Reset Your Password - GIFTECH",
     html: `
       <!DOCTYPE html>
       <html>
@@ -103,13 +103,13 @@ export const emailTemplates = {
       <body>
         <div class="container">
           <div class="header">
-            <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo-light.png" alt="Ready Pips" class="logo">
+            <img src="${process.env.NEXT_PUBLIC_APP_URL}/logo-light.png" alt="GIFTECH" class="logo">
             <h1>Reset Your Password</h1>
           </div>
           
           <p>Hello ${firstName},</p>
           
-          <p>We received a request to reset your password for your Ready Pips account. Click the button below to create a new password:</p>
+          <p>We received a request to reset your password for your GIFTECHaccount. Click the button below to create a new password:</p>
           
           <div style="text-align: center;">
             <a href="${resetUrl}" class="button">Reset Password</a>
@@ -125,7 +125,7 @@ export const emailTemplates = {
           <p style="word-break: break-all; color: #16a34a;">${resetUrl}</p>
           
           <div class="footer">
-            <p>Best regards,<br>The Ready Pips Team</p>
+            <p>Best regards,<br>The GIFTECHTeam</p>
             <p>If you have any questions, please contact our support team.</p>
           </div>
         </div>
@@ -136,24 +136,31 @@ export const emailTemplates = {
 };
 
 // Send email function
-export const sendEmail = async ({ to, subject, html }: { to: string; subject: string; html: string }) => {
+export const sendEmail = async ({
+  to,
+  subject,
+  html,
+}: {
+  to: string;
+  subject: string;
+  html: string;
+}) => {
   try {
+    const fromName = process.env.SMTP_FROM_NAME || "GIFTECH";
+    const fromEmail = process.env.SMTP_FROM_EMAIL || "no-reply@giftech.com";
 
-    const fromName = process.env.SMTP_FROM_NAME || 'Ready Pips';
-    const fromEmail = process.env.SMTP_FROM_EMAIL || 'no-reply@giftech.com';
-  
     // console.log('📧 [Email Service] Preparing to send email...');
     // console.log('  To:', to);
     // console.log('  From Name:', fromName);
     // console.log('  From Email:', fromEmail);
     // console.log('  Subject:', subject);
-    
+
     // console.log('📧 [Email Service] Transporter config being used:');
     // console.log('  Host:', SMTP_CONFIG.host);
     // console.log('  Port:', SMTP_CONFIG.port);
     // console.log('  User:', SMTP_CONFIG.user);
     // console.log('  Pass:', '***17 chars***');
-    
+
     const mailOptions = {
       from: `${fromName} <${fromEmail}>`,
       to,
@@ -167,13 +174,13 @@ export const sendEmail = async ({ to, subject, html }: { to: string; subject: st
     // console.log('✅ Message ID:', result.messageId);
     return true;
   } catch (error: any) {
-    console.error('❌ Email sending failed:', error);
-    console.error('❌ Error details:', {
+    console.error("❌ Email sending failed:", error);
+    console.error("❌ Error details:", {
       code: error.code,
       response: error.response,
       responseCode: error.responseCode,
       command: error.command,
-      message: error.message
+      message: error.message,
     });
     return false;
   }

@@ -86,7 +86,7 @@ export async function createStripeCheckoutSession(
   planId: string,
   userId: string,
   successUrl: string,
-  cancelUrl: string
+  cancelUrl: string,
 ): Promise<string> {
   const plan = subscriptionPlans.find((p) => p.id === planId);
   if (!plan) {
@@ -124,7 +124,7 @@ export async function createStripeCheckoutSession(
 export async function initializePaystack(
   planId: string,
   userEmail: string,
-  amount: number // amount in cents (KES)
+  amount: number, // amount in cents (KES)
 ): Promise<{ reference: string; authorization_url: string }> {
   const plan = subscriptionPlans.find((p) => p.id === planId);
   if (!plan) {
@@ -170,13 +170,13 @@ export async function initializePaystack(
             ],
           },
         }),
-      }
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Paystack API error: ${errorData.message || response.statusText}`
+        `Paystack API error: ${errorData.message || response.statusText}`,
       );
     }
 
@@ -203,7 +203,7 @@ export function validateStripeWebhook(payload: string, signature: string): any {
 
 export function validatePaystackWebhook(
   payload: any,
-  signature: string
+  signature: string,
 ): boolean {
   // Real Paystack webhook validation
   if (!process.env.PAYSTACK_SECRET_KEY) {
@@ -227,7 +227,7 @@ export function validatePaystackWebhook(
 
 // Helper function to verify Paystack transaction
 export async function verifyPaystackTransaction(
-  reference: string
+  reference: string,
 ): Promise<any> {
   if (!process.env.PAYSTACK_SECRET_KEY) {
     throw new Error("Paystack secret key not configured");
@@ -240,7 +240,7 @@ export async function verifyPaystackTransaction(
         headers: {
           Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
@@ -248,7 +248,7 @@ export async function verifyPaystackTransaction(
       throw new Error(
         `Paystack verification error: ${
           errorData.message || response.statusText
-        }`
+        }`,
       );
     }
 
@@ -296,58 +296,61 @@ export interface PesapalOrderResponse {
 }
 
 // Register IPN (Instant Payment Notification) with PesaPal
-async function registerPesapalIPN(accessToken: string, baseUrl: string): Promise<string | null> {
+async function registerPesapalIPN(
+  accessToken: string,
+  baseUrl: string,
+): Promise<string | null> {
   try {
     const ipnUrl = `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/payments/pesapal-webhook`;
-    
+
     // console.log("🔍 Registering IPN URL:", ipnUrl);
-    
+
     const ipnRequest = {
       url: ipnUrl,
-      ipn_notification_type: "POST"
+      ipn_notification_type: "POST",
     };
-    
+
     const ipnResponse = await fetch(`${baseUrl}/URLSetup/RegisterIPN`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+        Accept: "application/json",
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(ipnRequest),
     });
-    
+
     if (!ipnResponse.ok) {
       console.error("❌ IPN registration failed:", ipnResponse.status);
       return null;
     }
-    
+
     const ipnData = await ipnResponse.json();
     // console.log("🔍 IPN registration response:", ipnData);
-    
+
     if (ipnData.ipn_id) {
       // console.log("✅ IPN registered successfully:", ipnData.ipn_id);
-      
+
       // Automatically save to .env file
       try {
-        const fs = require('fs');
-        const path = require('path');
-        const envPath = path.join(process.cwd(), '.env');
-        
+        const fs = require("fs");
+        const path = require("path");
+        const envPath = path.join(process.cwd(), ".env");
+
         // Read current .env file
-        let envContent = '';
+        let envContent = "";
         if (fs.existsSync(envPath)) {
-          envContent = fs.readFileSync(envPath, 'utf8');
+          envContent = fs.readFileSync(envPath, "utf8");
         }
-        
+
         // Check if PESAPAL_NOTIFICATION_ID already exists
         const notificationIdRegex = /^PESAPAL_NOTIFICATION_ID=.*/m;
-        
+
         if (notificationIdRegex.test(envContent)) {
           // Update existing line
           envContent = envContent.replace(
             notificationIdRegex,
-            `PESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}`
+            `PESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}`,
           );
           // console.log("📝 Updated PESAPAL_NOTIFICATION_ID in .env file");
         } else {
@@ -357,32 +360,31 @@ async function registerPesapalIPN(accessToken: string, baseUrl: string): Promise
             // Add to existing Pesapal section
             envContent = envContent.replace(
               pesapalSectionRegex,
-              `$1PESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}\n$2`
+              `$1PESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}\n$2`,
             );
           } else {
             // Add at the end of file
-            if (!envContent.endsWith('\n')) envContent += '\n';
+            if (!envContent.endsWith("\n")) envContent += "\n";
             envContent += `\n# Auto-generated Pesapal IPN ID\nPESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}\n`;
           }
           // console.log("📝 Added PESAPAL_NOTIFICATION_ID to .env file");
         }
-        
+
         // Write back to .env file
-        fs.writeFileSync(envPath, envContent, 'utf8');
+        fs.writeFileSync(envPath, envContent, "utf8");
         // console.log("✅ .env file updated automatically with notification ID");
-        
+
         // Update process.env so it's available immediately
         process.env.PESAPAL_NOTIFICATION_ID = ipnData.ipn_id;
-        
       } catch (fsError) {
         console.error("⚠️  Could not auto-update .env file:", fsError);
         // console.log("⚠️  Please manually add this to your .env file:");
         // console.log(`PESAPAL_NOTIFICATION_ID=${ipnData.ipn_id}`);
       }
-      
+
       return ipnData.ipn_id;
     }
-    
+
     return null;
   } catch (error) {
     console.error("❌ Error registering IPN:", error);
@@ -396,7 +398,7 @@ export async function initializePesapal(
   userPhone: string,
   userFirstName: string,
   userLastName: string,
-  amount: number // amount in KES
+  amount: number, // amount in KES
 ): Promise<{ order_tracking_id: string; redirect_url: string }> {
   const plan = subscriptionPlans.find((p) => p.id === planId);
   if (!plan) {
@@ -404,10 +406,10 @@ export async function initializePesapal(
   }
 
   // Test mode: Use configurable test amount for all packages during testing
-  const isTestMode = process.env.PESAPAL_TEST_MODE === 'true';
-  const testAmount = parseFloat(process.env.PESAPAL_TEST_AMOUNT || '5'); // Default 5 KES for testing
+  const isTestMode = process.env.PESAPAL_TEST_MODE === "true";
+  const testAmount = parseFloat(process.env.PESAPAL_TEST_AMOUNT || "5"); // Default 5 KES for testing
   const originalAmount = amount;
-  
+
   if (isTestMode) {
     // console.log(`🧪 [Pesapal Test Mode] Using ${testAmount} KES instead of ${amount} KES for ${plan.name} package`);
     amount = testAmount;
@@ -416,17 +418,21 @@ export async function initializePesapal(
   }
 
   // Check if Pesapal credentials are available
-  if (!process.env.PESAPAL_CONSUMER_KEY || !process.env.PESAPAL_CONSUMER_SECRET) {
+  if (
+    !process.env.PESAPAL_CONSUMER_KEY ||
+    !process.env.PESAPAL_CONSUMER_SECRET
+  ) {
     throw new Error("Pesapal credentials not configured");
   }
 
   // Mock mode for testing without valid credentials
-  const isMockMode = process.env.PESAPAL_MOCK_MODE === 'true';
+  const isMockMode = process.env.PESAPAL_MOCK_MODE === "true";
   if (isMockMode) {
     // console.log("🧪 [Pesapal Mock Mode] Simulating successful payment creation");
     return {
       order_tracking_id: `mock_${Date.now()}_${Math.random().toString(36).substring(7)}`,
-      redirect_url: "https://cybqa.pesapal.com/pesapaliframe/PesapalIframe3/Index/?OrderTrackingId=mock_order_123",
+      redirect_url:
+        "https://cybqa.pesapal.com/pesapaliframe/PesapalIframe3/Index/?OrderTrackingId=mock_order_123",
     };
   }
 
@@ -439,27 +445,27 @@ export async function initializePesapal(
     // console.log("🔍 Requesting Pesapal access token...");
     // console.log("🔍 Consumer Key:", process.env.PESAPAL_CONSUMER_KEY ? "Present" : "Missing");
     // console.log("🔍 Consumer Secret:", process.env.PESAPAL_CONSUMER_SECRET ? "Present" : "Missing");
-    
+
     const tokenRequest = {
       consumer_key: process.env.PESAPAL_CONSUMER_KEY,
       consumer_secret: process.env.PESAPAL_CONSUMER_SECRET,
     };
-    
+
     // console.log("🔍 Token request payload:", tokenRequest);
 
     // Use production endpoints for real credentials
-    const isProduction = process.env.PESAPAL_USE_PRODUCTION === 'true';
-    const baseUrl = isProduction 
-      ? "https://pay.pesapal.com/v3/api" 
+    const isProduction = process.env.PESAPAL_USE_PRODUCTION === "true";
+    const baseUrl = isProduction
+      ? "https://pay.pesapal.com/v3/api"
       : "https://cybqa.pesapal.com/pesapalv3/api";
-    
+
     // console.log(`🔍 Using ${isProduction ? 'PRODUCTION' : 'SANDBOX'} endpoints: ${baseUrl}`);
 
     const tokenResponse = await fetch(`${baseUrl}/Auth/RequestToken`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
         "User-Agent": "giftech/1.0",
       },
       body: JSON.stringify(tokenRequest),
@@ -471,28 +477,36 @@ export async function initializePesapal(
     if (!tokenResponse.ok) {
       const errorText = await tokenResponse.text();
       console.error("❌ Token request failed:", errorText);
-      throw new Error(`Failed to get Pesapal access token: ${tokenResponse.status} ${errorText}`);
+      throw new Error(
+        `Failed to get Pesapal access token: ${tokenResponse.status} ${errorText}`,
+      );
     }
 
     const tokenData = await tokenResponse.json();
     // console.log("🔍 Token response data:", tokenData);
-    
+
     // Check for API errors
     if (tokenData.error) {
-      const errorCode = tokenData.error.code || 'unknown_error';
-      const errorMessage = tokenData.error.message || 'No error message provided';
-      
-      if (errorCode === 'invalid_consumer_key_or_secret_provided') {
-        console.error('❌ Invalid PesaPal credentials!');
-        console.error('Consumer Key:', process.env.PESAPAL_CONSUMER_KEY?.substring(0, 10) + '...');
-        console.error('Using Production:', isProduction);
-        console.error('Base URL:', baseUrl);
-        throw new Error(`Invalid PesaPal credentials. Using ${isProduction ? 'PRODUCTION' : 'SANDBOX'} mode. Please verify your Consumer Key and Secret match the mode you're using.`);
+      const errorCode = tokenData.error.code || "unknown_error";
+      const errorMessage =
+        tokenData.error.message || "No error message provided";
+
+      if (errorCode === "invalid_consumer_key_or_secret_provided") {
+        console.error("❌ Invalid PesaPal credentials!");
+        console.error(
+          "Consumer Key:",
+          process.env.PESAPAL_CONSUMER_KEY?.substring(0, 10) + "...",
+        );
+        console.error("Using Production:", isProduction);
+        console.error("Base URL:", baseUrl);
+        throw new Error(
+          `Invalid PesaPal credentials. Using ${isProduction ? "PRODUCTION" : "SANDBOX"} mode. Please verify your Consumer Key and Secret match the mode you're using.`,
+        );
       } else {
         throw new Error(`Pesapal API error: ${errorCode} - ${errorMessage}`);
       }
     }
-    
+
     const accessToken = tokenData.token;
 
     if (!accessToken) {
@@ -506,10 +520,10 @@ export async function initializePesapal(
       id: merchantReference,
       currency: "KES",
       amount: amount,
-      description: `Ready Pips ${plan.name} Subscription`,
+      description: `GIFTECH${plan.name} Subscription`,
       callback_url: `${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/signals/success`,
       redirect_mode: "TOP_WINDOW",
-      branch: "Ready Pips - HQ",
+      branch: "GIFTECH- HQ",
       billing_address: {
         email_address: userEmail,
         phone_number: userPhone,
@@ -521,13 +535,16 @@ export async function initializePesapal(
 
     // Handle notification_id (IPN)
     let notificationId = process.env.PESAPAL_NOTIFICATION_ID;
-    
+
     // Validate existing notification_id
-    const isValidUUID = notificationId && 
-        notificationId !== "your_pesapal_notification_id" && 
-        notificationId !== "" &&
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(notificationId);
-    
+    const isValidUUID =
+      notificationId &&
+      notificationId !== "your_pesapal_notification_id" &&
+      notificationId !== "" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+        notificationId,
+      );
+
     if (!isValidUUID) {
       // console.log("⚠️  No valid notification_id found. Attempting to register new IPN...");
       const newIpnId = await registerPesapalIPN(accessToken, baseUrl);
@@ -535,7 +552,7 @@ export async function initializePesapal(
         notificationId = newIpnId;
       }
     }
-    
+
     // Only add notification_id to request if we have a valid one
     if (isValidUUID || notificationId) {
       orderRequest.notification_id = notificationId;
@@ -547,15 +564,18 @@ export async function initializePesapal(
 
     // console.log("🔍 Creating Pesapal order with data:", orderRequest);
 
-    const orderResponse = await fetch(`${baseUrl}/Transactions/SubmitOrderRequest`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Authorization": `Bearer ${accessToken}`,
+    const orderResponse = await fetch(
+      `${baseUrl}/Transactions/SubmitOrderRequest`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify(orderRequest),
       },
-      body: JSON.stringify(orderRequest),
-    });
+    );
 
     // console.log("🔍 Order response status:", orderResponse.status);
     // console.log("🔍 Order response headers:", Object.fromEntries(orderResponse.headers.entries()));
@@ -563,7 +583,9 @@ export async function initializePesapal(
     if (!orderResponse.ok) {
       const errorText = await orderResponse.text();
       console.error("Order creation failed:", errorText);
-      throw new Error(`Pesapal order creation failed: ${orderResponse.status} ${errorText}`);
+      throw new Error(
+        `Pesapal order creation failed: ${orderResponse.status} ${errorText}`,
+      );
     }
 
     const orderData: PesapalOrderResponse = await orderResponse.json();
@@ -575,7 +597,9 @@ export async function initializePesapal(
         redirect_url: orderData.redirect_url,
       };
     } else {
-      const errorMessage = orderData.error ? JSON.stringify(orderData.error) : orderData.message || "Unknown error";
+      const errorMessage = orderData.error
+        ? JSON.stringify(orderData.error)
+        : orderData.message || "Unknown error";
       throw new Error(`Pesapal order failed: ${errorMessage}`);
     }
   } catch (error) {
@@ -586,17 +610,20 @@ export async function initializePesapal(
 
 // Helper function to verify Pesapal transaction
 export async function verifyPesapalTransaction(
-  orderTrackingId: string
+  orderTrackingId: string,
 ): Promise<any> {
-  if (!process.env.PESAPAL_CONSUMER_KEY || !process.env.PESAPAL_CONSUMER_SECRET) {
+  if (
+    !process.env.PESAPAL_CONSUMER_KEY ||
+    !process.env.PESAPAL_CONSUMER_SECRET
+  ) {
     throw new Error("Pesapal credentials not configured");
   }
 
   try {
     // Use production endpoints for real credentials
-    const isProduction = process.env.PESAPAL_USE_PRODUCTION === 'true';
-    const baseUrl = isProduction 
-      ? "https://pay.pesapal.com/v3/api" 
+    const isProduction = process.env.PESAPAL_USE_PRODUCTION === "true";
+    const baseUrl = isProduction
+      ? "https://pay.pesapal.com/v3/api"
       : "https://cybqa.pesapal.com/pesapalv3/api";
 
     // Get access token
@@ -604,7 +631,7 @@ export async function verifyPesapalTransaction(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Accept": "application/json",
+        Accept: "application/json",
       },
       body: JSON.stringify({
         consumer_key: process.env.PESAPAL_CONSUMER_KEY,
@@ -624,16 +651,16 @@ export async function verifyPesapalTransaction(
       `${baseUrl}/Transactions/GetTransactionStatus?orderTrackingId=${orderTrackingId}`,
       {
         headers: {
-          "Accept": "application/json",
-          "Authorization": `Bearer ${accessToken}`,
+          Accept: "application/json",
+          Authorization: `Bearer ${accessToken}`,
         },
-      }
+      },
     );
 
     if (!response.ok) {
       const errorData = await response.json();
       throw new Error(
-        `Pesapal verification error: ${errorData.message || response.statusText}`
+        `Pesapal verification error: ${errorData.message || response.statusText}`,
       );
     }
 
@@ -647,7 +674,7 @@ export async function verifyPesapalTransaction(
 
 export function validatePesapalWebhook(
   payload: any,
-  signature: string
+  signature: string,
 ): boolean {
   // Pesapal webhook validation
   if (!process.env.PESAPAL_WEBHOOK_SECRET) {
