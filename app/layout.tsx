@@ -13,7 +13,7 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: "GIFTECH- AI-Powered Trading Signals Platform",
+    default: "GIFTECH",
     template: "%s | GIFTECH",
   },
   description:
@@ -46,7 +46,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "en_US",
     url: "https://giftech.com",
-    title: "GIFTECH- AI-Powered Trading Signals Platform",
+    title: "GIFTECH",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm.",
     siteName: "GIFTECH",
@@ -55,13 +55,13 @@ export const metadata: Metadata = {
         url: "/giftech_ico.png",
         width: 1200,
         height: 630,
-        alt: "GIFTECH- AI-Powered Trading Signals Platform",
+        alt: "GIFTECH",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GIFTECH- AI-Powered Trading Signals Platform",
+    title: "GIFTECH",
     description:
       "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders.",
     images: ["/giftech_ico.png"],
