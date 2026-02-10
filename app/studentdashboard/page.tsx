@@ -137,6 +137,7 @@ export default function StudentDashboard() {
           ].map((item) => (
             <button
               key={item.label}
+              onClick={() => setActiveTab(item.label)}
               className={`w-full flex items-center gap-4 px-3 py-3 rounded-2xl transition-all group ${item.active
                   ? "bg-emerald-50 text-emerald-700 border border-emerald-100/50"
                   : "hover:bg-slate-50 text-slate-400 hover:text-slate-900"
@@ -190,10 +191,11 @@ export default function StudentDashboard() {
         </header>
 
         {/* Main Grid */}
+        {activeTab === "Overview" && (
+            <>
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-          {activeTab === "Overview" && (
-            <>
+          
               {/* PRIMARY MISSION CARD */}
               <div className="lg:col-span-8 space-y-8">
                 <motion.div
@@ -304,8 +306,11 @@ export default function StudentDashboard() {
                   <Zap className="absolute -bottom-4 -right-4 w-24 h-24 text-white/10 rotate-12" />
                 </div>
               </div>
-            </>
+            
+        </div>
+        </>
           )}
+        
 
           {
             activeTab === "Current Lab" && (
@@ -965,7 +970,6 @@ export default function StudentDashboard() {
               </div>
             </>
           )}
-        </div>
       </main>
     </div>
   );
