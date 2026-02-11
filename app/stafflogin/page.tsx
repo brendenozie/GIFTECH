@@ -34,7 +34,7 @@ export default function MobileClockIn() {
     }
   };
 
-  const handleVerify = async () => {
+   const handleVerify = async () => {
     setStatus("verifying");
     
     navigator.geolocation.getCurrentPosition(async (pos) => {
@@ -43,17 +43,39 @@ export default function MobileClockIn() {
         context?.drawImage(videoRef.current, 0, 0, 400, 400);
         const imageData = canvasRef.current.toDataURL("image/jpeg");
 
-        // Simulating API Call
-        setTimeout(() => {
-            setStatus("success");
-            setTimeout(() => router.push("/tutordashboard"), 1500);
-        }, 2000);
+        const res = await fetch("/api/attendance/clock-in", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              image: imageData, // Base64 photo
+              coords: { lat: pos.coords.latitude, lng: pos.coords.longitude }, // Geolocation
+              userDetails: { name: "Alex Johnson", email: "alex.johnson@example.com" },
+              action: "clock-in"
+            }),
+          });
+
+          const data = await res.json();
+          if (res.ok){
+             alert("Identity & Location Verified!");
+             //naviagete to dashboard or show success state
+              //actual navigation logic (e.g., using Next.js router)
+              //close camera stream
+              if (videoRef.current?.srcObject) {
+                (videoRef.current.srcObject as MediaStream).getTracks().forEach(t => t.stop());
+              }
+              router.push("/tutordashboard");
+                          
+            }else{
+               alert(`Failed: ${data.error}`);
+               setStatus("idle");
+              }
       }
     }, (err) => {
         setStatus("idle");
         alert("Please enable location services.");
     });
   };
+
 
   return (
     <div className="min-h-screen w-full bg-[#F8FAFC] flex flex-col items-center justify-center p-6 font-sans relative overflow-hidden">
