@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
-import { SignalServiceProvider } from "@/components/signal-service-provider";
 import { AuthProvider } from "@/components/auth-context";
 import { PhoneCheckWrapper } from "@/components/phone-check-wrapper";
 import { FloatingWhatsApp } from "@/components/floating-whatsapp";
@@ -17,18 +16,17 @@ export const metadata: Metadata = {
     template: "%s | GIFTECH",
   },
   description:
-    "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm for forex, crypto, and stocks.",
+    "Online learning platform offering coding courses, expert mentorship, and a supportive community to help you master programming skills and advance your tech career.",
   keywords: [
-    "trading signals",
-    "forex signals",
-    "crypto signals",
-    "stock analysis",
-    "AI trading",
-    "trading platform",
-    "market analysis",
-    "investment signals",
-    "trading alerts",
-    "financial markets",
+    "Coding",
+    "Programming",
+    "Web Development",
+    "Software Engineering",
+    "Tech Education",
+    "Online Courses",
+    "Programming Bootcamp",
+    "Developer Training",
+    "Coding Tutorials",
   ],
   authors: [{ name: "GIFTECHTeam" }],
   creator: "GIFTECH",
@@ -48,7 +46,7 @@ export const metadata: Metadata = {
     url: "https://giftech.com",
     title: "GIFTECH",
     description:
-      "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders using our proprietary algorithm.",
+      "Online learning platform offering coding courses, expert mentorship, and a supportive community to help you master programming skills and advance your tech career.",
     siteName: "GIFTECH",
     images: [
       {
@@ -63,7 +61,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GIFTECH",
     description:
-      "Get real-time, AI-powered trading signals with up to 93% accuracy. Join thousands of successful traders.",
+      "",
     images: ["/giftech_ico.png"],
     creator: "@giftech",
   },
@@ -163,7 +161,6 @@ export default function RootLayout({
           <ClientSessionProvider>
             <AuthProvider>
               <PhoneCheckWrapper>
-                <SignalServiceProvider />
                 {children}
                 <Toaster />
                 {/* <FloatingWhatsApp /> */}

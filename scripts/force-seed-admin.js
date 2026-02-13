@@ -64,8 +64,8 @@ async function forceSeededAdmin() {
     const superAdmin = {
       email: "admin@giftech.com",
       password: hashedPassword,
-      firstName: "Ready",
-      lastName: "Pips",
+      firstName: "GiF",
+      lastName: "Tech",
       role: "super_admin",
       permissions: allPermissions,
       isActive: true,
