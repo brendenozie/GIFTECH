@@ -114,6 +114,11 @@ export default function AdminDashboard() {
           const res = await fetch(`/api/students?schoolId=${selectedSchool._id}`);
           const json = await res.json();
 
+        }else if (activeTab === "Timetable") {
+          const res = await fetch('/api/timetable');
+          const json = await res.json();
+
+          
           const resSchools = await fetch('/api/schools');
           const jsonSchools = await resSchools.json();
 
@@ -121,11 +126,8 @@ export default function AdminDashboard() {
           const resFaculty = await fetch('/api/faculty');
           const jsonFaculty = await resFaculty.json();
 
-          setData(prev => ({ ...prev, students: json, schools: jsonSchools, faculty: jsonFaculty }));
-        }else if (activeTab === "Timetable") {
-          const res = await fetch('/api/timetable');
-          const json = await res.json();
-          setData(prev => ({ ...prev, timetable: json }));
+          setData(prev => ({ ...prev, timetable: json, students: json, schools: jsonSchools, faculty: jsonFaculty.faculty }));
+
         }
       } catch (e) { console.error("Tab sync failed"); }
       finally { setIsGenerating(false); }
@@ -295,6 +297,51 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleCreateAssignment = async (assignmentData: any) => {
+    setIsGenerating(true);
+    try {
+      const res = await fetch('/api/timetable', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(assignmentData),
+      });
+      if (res.ok) {
+        const newEntry = await res.json();
+        setData(prev => ({
+          ...prev,
+          timetable: [...prev.timetable, newEntry]
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to create assignment");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleDeleteAssignment = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this assignment?")) return;
+    setIsGenerating(true);
+    try {
+      const res = await fetch(`/api/timetable?id=${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setData(prev => ({
+          ...prev,
+          timetable: prev.timetable.filter((t: any) => t._id !== id)
+        }));
+      }
+    } catch (error) {
+      console.error("Failed to delete assignment");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const openEditAssignmentModal = (entry: any) => {
+    setSelectedSchool(entry); // Reusing selectedSchool state to pass context
+    setIsScheduleModalOpen(true);
+  };
+
   // --- CONTEXTUAL SEARCH ---
   const filteredData = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -315,6 +362,7 @@ export default function AdminDashboard() {
     }
     return [];
   }, [searchQuery, activeTab, data]);
+
 
   const maxRevenue = data.revenue.length > 0 ? Math.max(...data.revenue.map((d: any) => d.amount)) : 1;
 
@@ -755,7 +803,7 @@ export default function AdminDashboard() {
             <CreateAssignmentModal
               isOpen={isAssignmentModalOpen}
               onClose={() => setIsAssignmentModalOpen(false)}
-              onSubmit={() => {}} // Implement schedule creation logic as needed
+              onSubmit={handleCreateAssignment} // Implement schedule creation logic as needed
               scheduleData={{ subject: "", facultyId: "", schoolId: "", grade: "", day: "Monday", startTime: "", endTime: "" }}
               setScheduleData={() => {}} // Implement state management for schedule form
               facultyList={data.faculty}
