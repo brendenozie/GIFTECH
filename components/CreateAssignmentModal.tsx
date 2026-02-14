@@ -77,10 +77,10 @@ const handleSubmit = (e: React.FormEvent) => {
                         className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-2 focus:ring-blue-500/20"
                         value={scheduleData.facultyId || ""}
                         onChange={(e) =>
-                          setScheduleData((prev: any) => ({
-                            ...prev,
+                          setScheduleData({
+                            ...scheduleData,
                             facultyId: e.target.value,
-                          }))
+                          })
                         }
                       >
                         <option value="">Select Member...</option>
