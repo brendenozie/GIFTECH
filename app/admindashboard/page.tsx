@@ -39,11 +39,10 @@ export default function AdminDashboard() {
   });
 
   // --- FORM STATE ---
-  const [newMember, setNewMember] = useState({
-    _id: "",
+  const [newMember, setNewMember] = useState<any>({
     name: "",
-    role: "Senior Researcher",
-    dept: "Applied Physics",
+    role: "Teacher",
+    dept: "Python",
     research: "",
     progress: 50,
     status: "Active"
@@ -199,7 +198,7 @@ export default function AdminDashboard() {
         const savedMember = await res.json();
         setData(prev => ({ ...prev, faculty: [savedMember, ...prev.faculty] }));
         setIsModalOpen(false);
-        setNewMember({ _id: "", name: "", role: "Senior Researcher", dept: "Applied Physics", research: "", progress: 50, status: "Active" });
+        setNewMember({ name: "", role: "Teacher", dept: "Python", research: "", progress: 50, status: "Active" });
       }
     } catch (error) {
       alert("System failed to register new faculty member.");
@@ -258,7 +257,7 @@ export default function AdminDashboard() {
         
         setIsModalOpen(false);
         setIsEditing(false);
-        setNewMember({ _id: "", name: "", role: "Senior Researcher", dept: "Applied Physics", research: "", progress: 50, status: "Active" });
+        setNewMember({ name: "", role: "Teacher", dept: "Python", research: "", progress: 50, status: "Active" });
       }
     } catch (err) {
       console.error(err);
