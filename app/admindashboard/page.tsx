@@ -474,17 +474,17 @@ export default function AdminDashboard() {
   const filteredData = useMemo(() => {
     const q = searchQuery.toLowerCase();
     if (activeTab === "Faculty Management") {
-      return data.faculty ? data.faculty?.filter((f: any) => 
+      return data.faculty && data.faculty.length > 0 ? data.faculty?.filter((f: any) => 
         f.name.toLowerCase().includes(q) || f.dept.toLowerCase().includes(q)
       ) : [];
     }
     if (activeTab === "Revenue & Billing") {
-      return data.transactions ? data.transactions?.filter((t: any) => 
+      return data.transactions && data.transactions.length > 0 ? data.transactions?.filter((t: any) => 
         t.entity.toLowerCase().includes(q) || (t.id && t.id.toLowerCase().includes(q))
       ) : [];
     }
     if (activeTab === "School Management") {
-      return data.schools ? data.schools?.filter((s: any) => 
+      return data.schools && data.schools.length > 0 ? data.schools?.filter((s: any) => 
         s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q)
       ) : [];
     }
@@ -492,7 +492,7 @@ export default function AdminDashboard() {
   }, [searchQuery, activeTab, data]);
 
 
-  const maxRevenue = data.revenue?.length > 0 ? Math.max(...data.revenue?.map((d: any) => d.amount)) : 1;
+  const maxRevenue = data.revenue && data.revenue.length > 0 ? Math.max(...data.revenue?.map((d: any) => d.amount)) : 1;
 
   // Inside your AdminDashboard component
   const enrichedTimetable = useMemo(() => {
@@ -747,7 +747,7 @@ export default function AdminDashboard() {
                             ref={provided.innerRef}
                             className={`space-y-4 min-h-[500px] rounded-3xl transition-colors ${snapshot.isDraggingOver ? "bg-blue-50/50 ring-2 ring-blue-200 ring-dashed" : ""}`}
                           >
-                            {data.timetable && data.timetable.filter(entry => entry.day === day)
+                            {data.timetable && data.timetable.length > 0 ? data.timetable.filter(entry => entry.day === day)
                               .map((entry, index) => (
                                 <Draggable key={entry._id} draggableId={entry._id} index={index}>
                                   {(provided, snapshot) => {
@@ -831,7 +831,11 @@ export default function AdminDashboard() {
                                     )
                                   }}
                                 </Draggable>
-                              ))}
+                              )) : (
+                                <div className="h-24 flex items-center justify-center text-slate-400 italic text-sm">
+                                   No assignments for {day}
+                                 </div>
+                              )}
                             {provided.placeholder}
                           </div>
                         )}
@@ -978,7 +982,7 @@ export default function AdminDashboard() {
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {data.students && data.students?.filter(s => s.grade.toLowerCase() === grade.toLowerCase())
+                    {data.students ? data.students?.filter(s => s.grade.toLowerCase() === grade.toLowerCase())
                       .map(student => (
                         <div key={student._id} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between group">
                           <div className="flex items-center gap-3">
@@ -991,7 +995,11 @@ export default function AdminDashboard() {
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
-                      ))}
+                      )) : (
+                        <div className="col-span-full py-10 text-center text-slate-400 italic">
+                          No students enrolled in {grade}
+                        </div>
+                      )}
                   </div>
                 </div>
               ))}
