@@ -603,7 +603,7 @@ export default function AdminDashboard() {
 
             {/* Faculty Directory */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {filteredData && filteredData.map((person: any) => (
+              {filteredData && filteredData.length > 0 ? filteredData.map((person: any) => (
                  <motion.div 
                     layout 
                     key={person._id} 
@@ -647,7 +647,11 @@ export default function AdminDashboard() {
                     </button>
                   </div>
                 </motion.div>
-              ))}
+              )) : (
+                <div className="col-span-full py-10 text-center text-slate-400 italic">
+                  No faculty members found
+                </div>
+              )}
             </div>
           </div>
         )}
