@@ -11,8 +11,8 @@ export async function GET() {
   ]).toArray();
 
   return NextResponse.json({
-    activeEnrolled: 14208, // Replace with dynamic count
+    activeEnrolled: 0, // Replace with dynamic count
     totalRevenue: revenue[0]?.total || 0,
-    scholarshipBurn: 82100
+    scholarshipBurn: 0
   });
 }

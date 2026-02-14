@@ -85,7 +85,7 @@ const handleSubmit = (e: React.FormEvent) => {
                       >
                         <option value="">Select Member...</option>
                         {facultyList.map((f) => (
-                          <option key={String(f._id)} value={String(f._id)}>
+                          <option key={f._id || f.id} value={f._id || f.id || ""}>
                             {f.name}
                           </option>
                         ))}
