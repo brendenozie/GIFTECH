@@ -474,19 +474,19 @@ export default function AdminDashboard() {
   const filteredData = useMemo(() => {
     const q = searchQuery.toLowerCase();
     if (activeTab === "Faculty Management") {
-      return data.faculty?.filter((f: any) => 
+      return data.faculty ? data.faculty?.filter((f: any) => 
         f.name.toLowerCase().includes(q) || f.dept.toLowerCase().includes(q)
-      );
+      ) : [];
     }
     if (activeTab === "Revenue & Billing") {
-      return data.transactions?.filter((t: any) => 
+      return data.transactions ? data.transactions?.filter((t: any) => 
         t.entity.toLowerCase().includes(q) || (t.id && t.id.toLowerCase().includes(q))
-      );
+      ) : [];
     }
     if (activeTab === "School Management") {
-      return data.schools?.filter((s: any) => 
+      return data.schools ? data.schools?.filter((s: any) => 
         s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q)
-      );
+      ) : [];
     }
     return [];
   }, [searchQuery, activeTab, data]);
@@ -500,7 +500,7 @@ export default function AdminDashboard() {
       // Find the faculty name from the faculty list we already fetched
       const faculty = data.faculty?.find(f => f._id === entry.facultyId);
       // Find the school name from the schools list
-      const school = data.schools?.find(s => s._id === entry.schoolId);
+      const school = data.schools ? data.schools?.find(s => s._id === entry.schoolId) : null;
 
       return {
         ...entry,
