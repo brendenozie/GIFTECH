@@ -160,11 +160,8 @@ export default function RootLayout({
         >
           <ClientSessionProvider>
             <AuthProvider>
-              <PhoneCheckWrapper>
                 {children}
                 <Toaster />
-                {/* <FloatingWhatsApp /> */}
-              </PhoneCheckWrapper>
             </AuthProvider>
           </ClientSessionProvider>
         </ThemeProvider>

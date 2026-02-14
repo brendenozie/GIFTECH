@@ -69,7 +69,16 @@ export default function AdminDashboard() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
+  const [selectedAssignment, setSelectedAssignment] = useState<any>({
+    _id: "",
+    facultyId: "",
+    schoolId: "",
+    subject: "",
+    day: "Monday",
+    startTime: "09:00",
+    endTime: "10:00"
+    
+  });
 
   // --- API DATA FETCHING ---
   useEffect(() => {
