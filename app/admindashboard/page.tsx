@@ -682,7 +682,7 @@ export default function AdminDashboard() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.schools && data.schools?.map((school: any) => (
+              {data.schools && data.schools.length > 0 ? data.schools?.map((school: any) => (
                 <div key={school._id} className="group relative bg-white border border-slate-200 p-6 rounded-[2rem] hover:shadow-xl transition-all">
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
                     <button onClick={() => handleEditSchool(school)} className="p-2 bg-slate-50 rounded-lg text-slate-400 hover:text-blue-600"><Edit2 className="w-3 h-3" /></button>
@@ -711,7 +711,11 @@ export default function AdminDashboard() {
                     </span>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="col-span-full py-10 text-center text-slate-400 italic">
+                  No schools registered yet
+                </div>
+              )}
             </div>
           </div>
         )}
