@@ -152,12 +152,12 @@ export default function AdminDashboard() {
     if (!movedItem) return;
 
     // 2. Update local state optimistically
-    const updatedTimetable = data.timetable?.map(t => {
+    const updatedTimetable = data.timetable.length > 0 ? data.timetable?.map(t => {
       if (t._id === draggableId) {
         return { ...t, day: destination.droppableId }; // Update the day to the new column
       }
       return t;
-    });
+    }) : [];
 
     setData(prev => ({ ...prev, timetable: updatedTimetable }));
 
