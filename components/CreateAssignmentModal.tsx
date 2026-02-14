@@ -29,6 +29,13 @@ export default function CreateAssignmentModal({
   const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"];
   const grades = ["Grade 9", "Grade 10", "Grade 11", "Grade 12", "Higher Ed"];
 
+  // Inside CreateAssignmentModal
+const handleSubmit = (e: React.FormEvent) => {
+  e.preventDefault();
+  onSubmit(scheduleData); // This calls your handleCreateAssignment
+  onClose();          
+};
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -58,7 +65,7 @@ export default function CreateAssignmentModal({
               <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full"><X /></button>
             </div>
 
-            <form onSubmit={onSubmit} className="grid grid-cols-2 gap-8">
+            <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-8">
               {/* LEFT COLUMN: WHO & WHERE */}
               <div className="space-y-6">
                 <div>

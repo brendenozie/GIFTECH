@@ -10,12 +10,14 @@ import {
   Edit2,
   CalendarPlus,
   MapPin,
-  Clock
+  Clock,
+  AlertTriangle
 } from "lucide-react";
 import SchoolModal from "@/components/SchoolModal";
 import StudentEnrollmentModal from "@/components/StudentEnrollmentModal";
 import { time } from "console";
 import CreateAssignmentModal from "@/components/CreateAssignmentModal";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 export default function AdminDashboard() {
   // --- STATE MANAGEMENT ---
@@ -67,6 +69,7 @@ export default function AdminDashboard() {
   const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
   const [isAssignmentModalOpen, setIsAssignmentModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [selectedAssignment, setSelectedAssignment] = useState<any>(null);
 
   // --- API DATA FETCHING ---
   useEffect(() => {
@@ -127,6 +130,7 @@ export default function AdminDashboard() {
           const jsonFaculty = await resFaculty.json();
 
           setData(prev => ({ ...prev, timetable: json, students: json, schools: jsonSchools, faculty: jsonFaculty.faculty }));
+          setSelectedAssignment(null);
 
         }
       } catch (e) { console.error("Tab sync failed"); }
@@ -134,6 +138,42 @@ export default function AdminDashboard() {
     };
     fetchTabSpecifics();
   }, [activeTab, selectedSchool]);
+
+  const onDragEnd = async (result: any) => {
+    const { destination, source, draggableId } = result;
+
+    // Dropped outside a list or in the same spot
+    if (!destination || (destination.droppableId === source.droppableId && destination.index === source.index)) {
+      return;
+    }
+
+    // 1. Find the moved item
+    const movedItem = data.timetable.find(t => t._id === draggableId);
+    if (!movedItem) return;
+
+    // 2. Update local state optimistically
+    const updatedTimetable = data.timetable.map(t => {
+      if (t._id === draggableId) {
+        return { ...t, day: destination.droppableId }; // Update the day to the new column
+      }
+      return t;
+    });
+
+    setData(prev => ({ ...prev, timetable: updatedTimetable }));
+
+    // 3. Persist to Backend
+    try {
+      await fetch(`/api/timetable?id=${draggableId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ day: destination.droppableId }),
+      });
+    } catch (error) {
+      console.error("Failed to save drag movement");
+      // Optional: Revert state on error
+      setData(prev => ({ ...prev, timetable: data.timetable }));
+    }
+  };
 
   // --- ADD FACULTY LOGIC ---
   const handleAddFaculty = async (e: React.FormEvent) => {
@@ -297,26 +337,112 @@ export default function AdminDashboard() {
     }
   };
 
+  const timeToMinutes = (timeStr: string) => {
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
   const handleCreateAssignment = async (assignmentData: any) => {
-    setIsGenerating(true);
-    try {
-      const res = await fetch('/api/timetable', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(assignmentData),
-      });
-      if (res.ok) {
-        const newEntry = await res.json();
-        setData(prev => ({
-          ...prev,
-          timetable: [...prev.timetable, newEntry]
-        }));
-      }
-    } catch (error) {
-      console.error("Failed to create assignment");
-    } finally {
-      setIsGenerating(false);
+  // 1. Conflict Check Logic
+  const newStart = timeToMinutes(assignmentData.startTime);
+  const newEnd = timeToMinutes(assignmentData.endTime);
+
+  const conflict = data.timetable.find(entry => {
+    // Check if it's the same faculty member on the same day
+    if (entry.facultyId === assignmentData.facultyId && entry.day === assignmentData.day) {
+      const existingStart = timeToMinutes(entry.startTime);
+      const existingEnd = timeToMinutes(entry.endTime);
+
+      // Overlap formula: (StartA < EndB) && (EndA > StartB)
+      return newStart < existingEnd && newEnd > existingStart;
     }
+    return false;
+  });
+
+  if (conflict) {
+    alert(`Conflict detected! This faculty member is already assigned to ${conflict.subject} from ${conflict.startTime} to ${conflict.endTime}.`);
+    return; // Stop the execution
+  }
+
+  const method = selectedAssignment ? 'PATCH' : 'POST';
+
+  // 2. Proceed with API call if no conflict
+  setIsGenerating(true);
+  try {
+    const res = await fetch('/api/timetable', {
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...assignmentData,
+        id: selectedAssignment?._id // Include the ID for PATCH requests
+      }),
+    });
+
+    if (res.ok) {
+      const newEntry = await res.json();
+      setData(prev => ({ ...prev, timetable: [...prev.timetable, newEntry] }));
+      setIsAssignmentModalOpen(false);
+      setSelectedAssignment(null);
+    }
+  } catch (error) {
+    console.error("Save failed", error);
+  } finally {
+    setIsGenerating(false);
+  }
+};
+
+  // const handleCreateAssignment = async (assignmentData: any) => {
+  //   setIsGenerating(true);
+  //   try {
+  //     const res = await fetch('/api/timetable', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify(assignmentData),
+  //     });
+
+  //     if (res.ok) {
+  //       const newEntry = await res.json();
+  //       setData(prev => ({
+  //         ...prev,
+  //         timetable: [...prev.timetable, newEntry]
+  //       }));
+        
+  //       // Close the modal ONLY on success
+  //       setIsAssignmentModalOpen(false); 
+  //       // Optional: Reset your form data state
+  //       setSelectedAssignment(null); 
+  //     } else {
+  //       // Handle server errors (e.g., show a toast notification)
+  //       console.error("Server returned an error");
+  //     }
+  //   } catch (error) {
+  //     console.error("Failed to create assignment", error);
+  //   } finally {
+  //     setIsGenerating(false);
+  //   }
+  // };
+  const hasTimeConflict = (currentEntry:any, allEntries:any[]) => {
+    const toMin = (t:string) => {
+      const [h, m] = t.split(':').map(Number);
+      return h * 60 + m;
+    };
+
+    const startA = toMin(currentEntry.startTime);
+    const endA = toMin(currentEntry.endTime);
+
+    return allEntries.some(other => {
+      // 1. Must be different records
+      if (currentEntry._id === other._id) return false;
+      
+      // 2. Must be the same faculty member on the same day
+      if (currentEntry.facultyId !== other.facultyId || currentEntry.day !== other.day) return false;
+
+      const startB = toMin(other.startTime);
+      const endB = toMin(other.endTime);
+
+      // 3. Overlap formula: (StartA < EndB) AND (EndA > StartB)
+      return startA < endB && endA > startB;
+    });
   };
 
   const handleDeleteAssignment = async (id: string) => {
@@ -340,6 +466,7 @@ export default function AdminDashboard() {
   const openEditAssignmentModal = (entry: any) => {
     setSelectedSchool(entry); // Reusing selectedSchool state to pass context
     setIsScheduleModalOpen(true);
+
   };
 
   // --- CONTEXTUAL SEARCH ---
@@ -366,11 +493,21 @@ export default function AdminDashboard() {
 
   const maxRevenue = data.revenue.length > 0 ? Math.max(...data.revenue.map((d: any) => d.amount)) : 1;
 
-  // const enrichedTimetable = timetableData.map(entry => ({
-  // ...entry,
-  // facultyName: data.faculty.find(f => f._id === entry.facultyId)?.name || "Unknown",
-  // schoolName: data.schools.find(s => s._id === entry.schoolId)?.name || "Unknown"
-  // }));
+  // Inside your AdminDashboard component
+  const enrichedTimetable = useMemo(() => {
+    return data.timetable.map(entry => {
+      // Find the faculty name from the faculty list we already fetched
+      const faculty = data.faculty.find(f => f._id === entry.facultyId);
+      // Find the school name from the schools list
+      const school = data.schools.find(s => s._id === entry.schoolId);
+
+      return {
+        ...entry,
+        facultyName: faculty ? faculty.name : "Unassigned",
+        schoolName: school ? school.name : "Unknown Location"
+      };
+    });
+  }, [data.timetable, data.faculty, data.schools]);
 
   if (isLoading) return (
     <div className="h-screen w-full flex items-center justify-center bg-slate-50">
@@ -594,32 +731,135 @@ export default function AdminDashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
+              {/* --- INSIDE THE TIMETABLE TAB --- */}
+              <DragDropContext onDragEnd={onDragEnd}>
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                  {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
+                    <div key={day} className="space-y-4">
+                      <div className="bg-slate-900 text-white p-4 rounded-2xl text-center">
+                        <span className="text-[10px] font-black uppercase tracking-widest">{day}</span>
+                      </div>
+
+                      <Droppable droppableId={day}>
+                        {(provided, snapshot) => (
+                          <div 
+                            {...provided.droppableProps}
+                            ref={provided.innerRef}
+                            className={`space-y-4 min-h-[500px] rounded-3xl transition-colors ${snapshot.isDraggingOver ? "bg-blue-50/50 ring-2 ring-blue-200 ring-dashed" : ""}`}
+                          >
+                            {data.timetable
+                              .filter(entry => entry.day === day)
+                              .map((entry, index) => (
+                                <Draggable key={entry._id} draggableId={entry._id} index={index}>
+                                  {(provided, snapshot) => {
+                                    const isConflicting = hasTimeConflict(entry, data.timetable);
+                                    return (
+                                      <div
+                                          ref={provided.innerRef}
+                                          {...provided.draggableProps}
+                                          {...provided.dragHandleProps}
+                                          className={`group relative transition-all duration-300 ${
+                                            snapshot.isDragging ? "z-50" : "z-0"
+                                          }`}
+                                        >
+                                          <div
+                                            className={`relative overflow-hidden p-5 rounded-[2rem] border transition-all duration-300 shadow-sm
+                                              ${snapshot.isDragging ? "scale-105 rotate-2 shadow-2xl bg-white/90 backdrop-blur-md border-blue-400" : "bg-white border-slate-100 hover:shadow-xl hover:-translate-y-1"}
+                                              ${isConflicting ? "bg-red-50/50 border-red-100 ring-1 ring-red-200" : "hover:border-blue-100"}
+                                            `}
+                                          >
+                                            {/* --- DECORATIVE ACCENT LINE --- */}
+                                            <div className={`absolute top-0 left-0 bottom-0 w-1.5 ${isConflicting ? 'bg-red-500' : 'bg-blue-600'}`} />
+
+                                            {/* --- ACTION OVERLAY (Visible on Hover) --- */}
+                                            <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                                              <button 
+                                                onClick={(e) => { e.stopPropagation(); openEditAssignmentModal(entry); }}
+                                                className="p-2 bg-white/80 backdrop-blur-md shadow-sm border border-slate-100 rounded-xl text-slate-400 hover:text-blue-600 hover:scale-110 transition-all"
+                                              >
+                                                <Edit2 className="w-3.5 h-3.5" />
+                                              </button>
+                                              <button 
+                                                onClick={(e) => { e.stopPropagation(); handleDeleteAssignment(entry._id); }}
+                                                className="p-2 bg-white/80 backdrop-blur-md shadow-sm border border-slate-100 rounded-xl text-slate-400 hover:text-red-600 hover:scale-110 transition-all"
+                                              >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                              </button>
+                                            </div>
+
+                                            {/* --- CARD CONTENT --- */}
+                                            <div className="pl-2">
+                                              <div className="flex flex-col gap-1 mb-4">
+                                                <span className={`w-fit px-3 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider
+                                                  ${isConflicting ? 'bg-red-100 text-red-600' : 'bg-blue-50 text-blue-600'}`}>
+                                                  {entry.subject}
+                                                </span>
+                                                <h4 className="font-black text-slate-900 text-sm leading-tight group-hover:text-blue-600 transition-colors">
+                                                  {entry.facultyName}
+                                                </h4>
+                                              </div>
+
+                                              <div className="space-y-2">
+                                                <div className="flex items-center gap-2.5 text-slate-500">
+                                                  <div className="p-1.5 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
+                                                    <MapPin className="w-3 h-3 text-slate-400 group-hover:text-blue-500" />
+                                                  </div>
+                                                  <p className="text-[10px] font-bold tracking-tight">
+                                                    {entry.schoolName} <span className="text-slate-300 mx-1">•</span> {entry.grade}
+                                                  </p>
+                                                </div>
+
+                                                <div className="flex items-center gap-2.5 text-slate-500">
+                                                  <div className="p-1.5 bg-slate-50 rounded-lg group-hover:bg-blue-50 transition-colors">
+                                                    <Clock className="w-3 h-3 text-slate-400 group-hover:text-blue-500" />
+                                                  </div>
+                                                  <p className="text-[10px] font-black tracking-tight text-slate-600">
+                                                    {entry.startTime} <span className="text-slate-300 font-normal">—</span> {entry.endTime}
+                                                  </p>
+                                                </div>
+                                              </div>
+
+                                              {/* --- CONFLICT INDICATOR --- */}
+                                              {isConflicting && (
+                                                <div className="mt-4 flex items-center gap-2 px-3 py-2 bg-red-100/50 rounded-xl border border-red-100 animate-pulse">
+                                                  <AlertTriangle className="w-3 h-3 text-red-600" />
+                                                  <span className="text-[9px] font-black text-red-600 uppercase">Overlap Detected</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          </div>
+                                        </div>
+                                    )
+                                  }}
+                                </Draggable>
+                              ))}
+                            {provided.placeholder}
+                          </div>
+                        )}
+                      </Droppable>
+                    </div>
+                  ))}
+                </div>
+              </DragDropContext>
+
+              {/* {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
                 <div key={day} className="space-y-4">
                   <div className="bg-slate-900 text-white p-4 rounded-2xl text-center">
                     <span className="text-[10px] font-black uppercase tracking-widest">{day}</span>
                   </div>
                   
                   <div className="space-y-4 min-h-[400px]">
-                    {data.timetable
-                      .filter(entry => entry.day === day)
-                      .map((entry, i) => (
-                        <div key={i} className="bg-white border-l-4 border-blue-600 p-5 rounded-2xl shadow-sm hover:shadow-md transition-all group relative">
-                          <p className="text-[10px] font-black text-blue-600 uppercase mb-1">{entry.subject}</p>
-                          <p className="font-bold text-sm text-slate-900">{entry.facultyName}</p>
-                          <div className="mt-3 flex items-center gap-2 text-slate-400">
-                              <MapPin className="w-3 h-3" />
-                              <span className="text-[10px] font-bold">{entry.schoolName} — {entry.grade}</span>
-                          </div>
-                          <div className="mt-1 flex items-center gap-2 text-slate-400">
-                              <Clock className="w-3 h-3" />
-                              <span className="text-[10px] font-bold">{entry.startTime} - {entry.endTime}</span>
-                          </div>
-                        </div>
-                      ))}
+                    {enrichedTimetable
+                        .filter(entry => entry.day === day)
+                        .map((entry, i) => {
+                          
+                          return (
+                            
+                          )}
+                        )}
                   </div>
                 </div>
-              ))}
+              ))} */}
             </div>
           </div>
         )}
@@ -804,8 +1044,8 @@ export default function AdminDashboard() {
               isOpen={isAssignmentModalOpen}
               onClose={() => setIsAssignmentModalOpen(false)}
               onSubmit={handleCreateAssignment} // Implement schedule creation logic as needed
-              scheduleData={{ subject: "", facultyId: "", schoolId: "", grade: "", day: "Monday", startTime: "", endTime: "" }}
-              setScheduleData={() => {}} // Implement state management for schedule form
+              scheduleData={selectedAssignment || { subject: "", facultyId: "", schoolId: "", grade: "", day: "Monday", startTime: "", endTime: "" }}
+              setScheduleData={setSelectedAssignment} // Implement state management for schedule form
               facultyList={data.faculty}
               schoolList={data.schools}
               isGenerating={isGenerating}
