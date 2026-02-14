@@ -148,11 +148,11 @@ export default function AdminDashboard() {
     }
 
     // 1. Find the moved item
-    const movedItem = data.timetable.find(t => t._id === draggableId);
+    const movedItem = data.timetable?.find(t => t._id === draggableId);
     if (!movedItem) return;
 
     // 2. Update local state optimistically
-    const updatedTimetable = data.timetable.map(t => {
+    const updatedTimetable = data.timetable?.map(t => {
       if (t._id === draggableId) {
         return { ...t, day: destination.droppableId }; // Update the day to the new column
       }
@@ -473,17 +473,17 @@ export default function AdminDashboard() {
   const filteredData = useMemo(() => {
     const q = searchQuery.toLowerCase();
     if (activeTab === "Faculty Management") {
-      return data.faculty.filter((f: any) => 
+      return data.faculty?.filter((f: any) => 
         f.name.toLowerCase().includes(q) || f.dept.toLowerCase().includes(q)
       );
     }
     if (activeTab === "Revenue & Billing") {
-      return data.transactions.filter((t: any) => 
+      return data.transactions?.filter((t: any) => 
         t.entity.toLowerCase().includes(q) || (t.id && t.id.toLowerCase().includes(q))
       );
     }
     if (activeTab === "School Management") {
-      return data.schools.filter((s: any) => 
+      return data.schools?.filter((s: any) => 
         s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q)
       );
     }
@@ -491,15 +491,15 @@ export default function AdminDashboard() {
   }, [searchQuery, activeTab, data]);
 
 
-  const maxRevenue = data.revenue.length > 0 ? Math.max(...data.revenue.map((d: any) => d.amount)) : 1;
+  const maxRevenue = data.revenue?.length > 0 ? Math.max(...data.revenue?.map((d: any) => d.amount)) : 1;
 
   // Inside your AdminDashboard component
   const enrichedTimetable = useMemo(() => {
-    return data.timetable.map(entry => {
+    return data.timetable?.map(entry => {
       // Find the faculty name from the faculty list we already fetched
-      const faculty = data.faculty.find(f => f._id === entry.facultyId);
+      const faculty = data.faculty?.find(f => f._id === entry.facultyId);
       // Find the school name from the schools list
-      const school = data.schools.find(s => s._id === entry.schoolId);
+      const school = data.schools?.find(s => s._id === entry.schoolId);
 
       return {
         ...entry,
@@ -530,7 +530,7 @@ export default function AdminDashboard() {
         <nav className="flex-grow space-y-2">
           {[
             { label: "Global Insights", icon: BarChart3 },
-            { label: "Faculty Management", icon: Users2, count: data.faculty.length },
+            { label: "Faculty Management", icon: Users2, count: data.faculty?.length || 0 },
             { label: "School Management", icon: Building2 },
             { label: "Timetable", icon: CalendarPlus },
             { label: "Revenue & Billing", icon: DollarSign },
@@ -681,7 +681,7 @@ export default function AdminDashboard() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.schools.map((school: any) => (
+              {data.schools?.map((school: any) => (
                 <div key={school._id} className="group relative bg-white border border-slate-200 p-6 rounded-[2rem] hover:shadow-xl transition-all">
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
                     <button onClick={() => handleEditSchool(school)} className="p-2 bg-slate-50 rounded-lg text-slate-400 hover:text-blue-600"><Edit2 className="w-3 h-3" /></button>
@@ -747,8 +747,7 @@ export default function AdminDashboard() {
                             ref={provided.innerRef}
                             className={`space-y-4 min-h-[500px] rounded-3xl transition-colors ${snapshot.isDraggingOver ? "bg-blue-50/50 ring-2 ring-blue-200 ring-dashed" : ""}`}
                           >
-                            {data.timetable
-                              .filter(entry => entry.day === day)
+                            {data.timetable && data.timetable.filter(entry => entry.day === day)
                               .map((entry, index) => (
                                 <Draggable key={entry._id} draggableId={entry._id} index={index}>
                                   {(provided, snapshot) => {
@@ -998,8 +997,7 @@ export default function AdminDashboard() {
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {data.students
-                      .filter(s => s.grade.toLowerCase() === grade.toLowerCase())
+                    {data.students?.filter(s => s.grade.toLowerCase() === grade.toLowerCase())
                       .map(student => (
                         <div key={student._id} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between group">
                           <div className="flex items-center gap-3">
