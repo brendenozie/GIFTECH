@@ -90,7 +90,7 @@ const handleSubmit = (e: React.FormEvent) => {
                           <option value="">Select Member...</option>
                           {facultyList.map((f) => {
                             // Determine the ID once to ensure consistency
-                            const facultyId = f._id || f.id; 
+                            const facultyId = f._id; 
                             return (
                               <option key={facultyId} value={facultyId}>
                                 {f.name}
