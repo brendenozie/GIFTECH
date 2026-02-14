@@ -373,7 +373,7 @@ export default function AdminDashboard() {
     return; // Stop the execution
   }
 
-  const method = selectedAssignment ? 'PATCH' : 'POST';
+  const method = selectedAssignment && selectedAssignment._id && selectedAssignment._id !== "" && selectedAssignment._id !== undefined && selectedAssignment._id !== null && selectedAssignment._id !== "undefined" && selectedAssignment._id !== "null" ? 'PATCH' : 'POST';
 
   // 2. Proceed with API call if no conflict
   setIsGenerating(true);
