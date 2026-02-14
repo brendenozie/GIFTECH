@@ -464,9 +464,10 @@ export default function AdminDashboard() {
   };
 
   const openEditAssignmentModal = (entry: any) => {
-    setSelectedSchool(entry); // Reusing selectedSchool state to pass context
-    setIsScheduleModalOpen(true);
-
+    // setSelectedSchool(entry); // Reusing selectedSchool state to pass context
+    // setIsScheduleModalOpen(true);
+    setIsAssignmentModalOpen(true);
+    setSelectedAssignment(entry);
   };
 
   // --- CONTEXTUAL SEARCH ---
@@ -730,8 +731,7 @@ export default function AdminDashboard() {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-              {/* --- INSIDE THE TIMETABLE TAB --- */}
+
               <DragDropContext onDragEnd={onDragEnd}>
                 <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                   {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
@@ -757,7 +757,7 @@ export default function AdminDashboard() {
                                           ref={provided.innerRef}
                                           {...provided.draggableProps}
                                           {...provided.dragHandleProps}
-                                          className={`group relative transition-all duration-300 ${
+                                          className={`group relative transition-all duration-300 w-full ${
                                             snapshot.isDragging ? "z-50" : "z-0"
                                           }`}
                                         >
@@ -840,27 +840,8 @@ export default function AdminDashboard() {
                   ))}
                 </div>
               </DragDropContext>
-
-              {/* {["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"].map((day) => (
-                <div key={day} className="space-y-4">
-                  <div className="bg-slate-900 text-white p-4 rounded-2xl text-center">
-                    <span className="text-[10px] font-black uppercase tracking-widest">{day}</span>
-                  </div>
-                  
-                  <div className="space-y-4 min-h-[400px]">
-                    {enrichedTimetable
-                        .filter(entry => entry.day === day)
-                        .map((entry, i) => {
-                          
-                          return (
-                            
-                          )}
-                        )}
-                  </div>
-                </div>
-              ))} */}
+              
             </div>
-          </div>
         )}
 
         {activeTab === "Revenue & Billing" && (
