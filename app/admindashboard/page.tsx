@@ -496,7 +496,7 @@ export default function AdminDashboard() {
 
   // Inside your AdminDashboard component
   const enrichedTimetable = useMemo(() => {
-    return data.timetable?.map(entry => {
+    return data.timetable ? data.timetable?.map(entry => {
       // Find the faculty name from the faculty list we already fetched
       const faculty = data.faculty?.find(f => f._id === entry.facultyId);
       // Find the school name from the schools list
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
         facultyName: faculty ? faculty.name : "Unassigned",
         schoolName: school ? school.name : "Unknown Location"
       };
-    });
+    }) : [];
   }, [data.timetable, data.faculty, data.schools]);
 
   if (isLoading) return (
@@ -603,7 +603,7 @@ export default function AdminDashboard() {
 
             {/* Faculty Directory */}
             <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              {filteredData.map((person: any) => (
+              {filteredData && filteredData.map((person: any) => (
                  <motion.div 
                     layout 
                     key={person._id} 
@@ -682,7 +682,7 @@ export default function AdminDashboard() {
             </header>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {data.schools?.map((school: any) => (
+              {data.schools && data.schools?.map((school: any) => (
                 <div key={school._id} className="group relative bg-white border border-slate-200 p-6 rounded-[2rem] hover:shadow-xl transition-all">
                   <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 flex gap-2 transition-opacity">
                     <button onClick={() => handleEditSchool(school)} className="p-2 bg-slate-50 rounded-lg text-slate-400 hover:text-blue-600"><Edit2 className="w-3 h-3" /></button>
@@ -848,7 +848,7 @@ export default function AdminDashboard() {
           <div className="bg-white border border-slate-200 rounded-[3rem] p-10 overflow-hidden">
              <h3 className="font-black mb-8">Transaction Ledger</h3>
              <div className="space-y-2">
-               {filteredData.map((tx: any) => (
+               {filteredData && filteredData.map((tx: any) => (
                  <div key={tx._id} className="flex items-center justify-between p-5 hover:bg-slate-50 rounded-2xl transition-colors">
                    <div className="flex items-center gap-4">
                      <div className={`p-3 rounded-xl ${tx.type === 'Inbound' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-600'}`}>
@@ -978,7 +978,7 @@ export default function AdminDashboard() {
                   </h3>
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {data.students?.filter(s => s.grade.toLowerCase() === grade.toLowerCase())
+                    {data.students && data.students?.filter(s => s.grade.toLowerCase() === grade.toLowerCase())
                       .map(student => (
                         <div key={student._id} className="p-4 bg-slate-50 rounded-2xl flex items-center justify-between group">
                           <div className="flex items-center gap-3">
