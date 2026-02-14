@@ -72,24 +72,33 @@ const handleSubmit = (e: React.FormEvent) => {
                   <label className="text-[10px] font-black uppercase text-slate-400 ml-1">Assign Faculty</label>
                   <div className="relative mt-2">
                     <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <select
-                        required
-                        className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-2 focus:ring-blue-500/20"
-                        value={scheduleData.facultyId || ""}
-                        onChange={(e) =>
-                          setScheduleData({
-                            ...scheduleData,
-                            facultyId: e.target.value,
-                          })
-                        }
-                      >
-                        <option value="">Select Member...</option>
-                        {facultyList.map((f) => (
-                          <option key={f._id || f.id} value={f._id || f.id || ""}>
-                            {f.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div>
+                        <select
+                          required
+                          className="w-full pl-12 pr-4 py-4 bg-slate-50 border-none rounded-2xl text-sm font-bold appearance-none outline-none focus:ring-2 focus:ring-blue-500/20"
+                          // Ensure we are accessing the right property
+                          value={scheduleData.facultyId || ""} 
+                          onChange={(e) => {
+                            const newValue = e.target.value;
+                            console.log("Selected Faculty ID:", newValue); // Debugging line
+                            setScheduleData({
+                              ...scheduleData,
+                              facultyId: newValue,
+                            });
+                          }}
+                        >
+                          <option value="">Select Member...</option>
+                          {facultyList.map((f) => {
+                            // Determine the ID once to ensure consistency
+                            const facultyId = f._id || f.id; 
+                            return (
+                              <option key={facultyId} value={facultyId}>
+                                {f.name}
+                              </option>
+                            );
+                          })}
+                        </select>
+                      </div>
                   </div>
                 </div>
 
